@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://conversionhub.com/sitemap.xml
+
+# Allow all crawlers to access all pages
+Disallow:
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Block admin and private routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /*.json$
+
+# Allow all static assets
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.svg
+Allow: /*.ico
+Allow: /*.webp
+Allow: /*.woff
+Allow: /*.woff2
