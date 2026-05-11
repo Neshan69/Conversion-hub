@@ -12,6 +12,41 @@
   "functions": {
     "app/**/*.ts": {
       "maxDuration": 10
+    },
+    "app/**/*.tsx": {
+      "maxDuration": 10
+    },
+    "pages/**/*.ts": {
+      "maxDuration": 10
+    },
+    "pages/**/*.tsx": {
+      "maxDuration": 10
     }
-  }
+  },
+  "regions": ["iad1"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
 }
