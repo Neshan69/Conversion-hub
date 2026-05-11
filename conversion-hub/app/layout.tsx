@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { SiteWideStructuredData } from "@/components/seo/StructuredData";
+ import type { Metadata } from "next";
+ import { Geist, Geist_Mono } from "next/font/google";
+ import { ThemeProvider } from "@/components/providers/ThemeProvider";
+ import { Header } from "@/components/layout/Header";
+ import { Footer } from "@/components/layout/Footer";
+ import { SiteWideStructuredData } from "@/components/seo/StructuredData";
+ import "@/app/globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
