@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 import { ConversionCategory } from "@/types/converter";
 
 interface ConversionTableProps {
@@ -63,7 +63,7 @@ export const ConversionTable = memo(function ConversionTable({ category }: Conve
               </tr>
             </thead>
             <tbody>
-              {Object.entries(category.units).map(([key, unit], index) => {
+              {Object.entries(category.units).map(([key, unit]) => {
                 const factor = unit.factor;
                 const convertedValue = baseValue * factor;
                 const isBaseUnit = key === category.baseUnit;

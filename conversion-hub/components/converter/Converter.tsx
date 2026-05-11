@@ -4,9 +4,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input, Select, Button } from "@/components/ui/components";
 import { ConversionEngine } from "@/lib/converter-engine";
-import { getCategoryById, conversionCategories } from "@/data/conversions";
-import { copyToClipboard } from "@/lib/utils";
-import { ConversionCategory, Unit } from "@/types/converter";
+import { getCategoryById } from "@/data/conversions";
+import { copyToClipboard, addRecentConversion } from "@/lib/utils";
 import { Check, Copy, ArrowRightLeft } from "lucide-react";
 
 interface ConverterProps {
@@ -21,16 +20,17 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
   const [fromUnit, setFromUnit] = useState<string>(initialFromUnit || "");
   const [toUnit, setToUnit] = useState<string>(initialToUnit || "");
   const [copied, setCopied] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   // Initialize units when category changes
   useEffect(() => {
     if (category && !fromUnit) {
       const unitKeys = Object.keys(category.units);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFromUnit(unitKeys[0]);
       setToUnit(unitKeys[1] || unitKeys[0]);
     }
-  }, [category, fromUnit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
 
   // Create conversion engine
   const engine = useMemo(() => {
@@ -52,10 +52,21 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
     }
   }, [engine, fromValue, fromUnit, toUnit]);
 
+  // Save to recent conversions when conversion result changes
+  useEffect(() => {
+    if (conversionResult && fromValue && fromUnit && toUnit) {
+      addRecentConversion({
+        category: categoryId,
+        fromUnit,
+        toUnit,
+        fromValue: parseFloat(fromValue),
+        toValue: conversionResult.value,
+      });
+    }
+  }, [conversionResult, fromValue, fromUnit, toUnit, categoryId]);
+
   // Handle swap units
   const handleSwap = useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 300);
     setFromUnit(toUnit);
     setToUnit(fromUnit);
   }, [fromUnit, toUnit]);

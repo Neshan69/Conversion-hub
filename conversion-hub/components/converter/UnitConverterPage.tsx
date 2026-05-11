@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Converter } from "@/components/converter/Converter";
 import { getCategoryById } from "@/data/conversions";
 import { RelatedConverters } from "@/components/converter/RelatedConverters";
 import { ConversionTable } from "@/components/converter/ConversionTable";
 import { ConversionFormula } from "@/components/converter/ConversionFormula";
+import { RecentConversionsPanel } from "@/components/converter/RecentConversionsPanel";
+import { ConverterStructuredData } from "@/components/seo/ConverterStructuredData";
 
 interface UnitConverterPageProps {
   categoryId: string;
@@ -60,6 +62,18 @@ export function UnitConverterPage({
             initialFromUnit={initialFromUnit}
             initialToUnit={initialToUnit}
           />
+
+          {/* Structured data for SEO */}
+          <ConverterStructuredData 
+            categoryId={categoryId}
+            initialFromUnit={initialFromUnit}
+            initialToUnit={initialToUnit}
+          />
+
+          {/* Recent Conversions */}
+          <div className="mt-8">
+            <RecentConversionsPanel />
+          </div>
         </div>
       </section>
 

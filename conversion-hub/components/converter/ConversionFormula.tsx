@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { ConversionCategory, Unit } from "@/types/converter";
+import { ConversionCategory } from "@/types/converter";
 
 interface ConversionFormulaProps {
   category: ConversionCategory;

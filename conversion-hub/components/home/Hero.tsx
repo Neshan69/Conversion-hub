@@ -100,8 +100,8 @@ export function Hero() {
           <p className="text-center text-sm text-muted-foreground mb-6">
             Popular conversions
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {conversionCategories.slice(0, 6).map((category, index) => (
+            <div className="flex flex-wrap justify-center gap-3">
+              {conversionCategories.slice(0, 6).map((category) => (
               <Link
                 key={category.id}
                 href={`/convert/${category.id}`}

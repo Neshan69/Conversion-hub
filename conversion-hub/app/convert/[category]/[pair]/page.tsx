@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticProps } from "next";
+import { GetStaticPaths } from "next";
 import { notFound } from "next/navigation";
 import { UnitConverterPage } from "@/components/converter/UnitConverterPage";
 import { getCategoryByUnits, getCategoryById, conversionCategories } from "@/data/conversions";
@@ -11,7 +11,7 @@ interface PageProps {
   };
 }
 
-// Generate static paths for all unit pair combinations within categories
+// Generate static paths for all unit pair combinations
 export const getStaticPaths: GetStaticPaths = async () => {
   const paths: { params: { category: string; pair: string } }[] = [];
   

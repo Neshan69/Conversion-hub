@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SiteWideStructuredData } from "@/components/seo/StructuredData";
@@ -70,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
         {/* Google Site Verification */}
         {/* <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> */}
@@ -79,11 +80,13 @@ export default function RootLayout({
         {/* <meta name="msvalidate.01" content="YOUR_VERIFICATION_CODE" /> */}
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Site-wide structured data */}
-        <SiteWideStructuredData />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ThemeProvider defaultTheme="system" storageKey="conversion-hub-theme">
+          {/* Site-wide structured data */}
+          <SiteWideStructuredData />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

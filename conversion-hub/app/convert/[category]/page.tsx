@@ -1,5 +1,5 @@
-import { GetStaticPaths, GetStaticProps } from "next";
-import { notFound } from "next/navigation";
+import { GetStaticPaths } from "next";
+import { redirect } from "next/navigation";
 import { UnitConverterPage } from "@/components/converter/UnitConverterPage";
 import { getCategoryById, conversionCategories } from "@/data/conversions";
 import { Metadata } from "next";
@@ -7,6 +7,10 @@ import { Metadata } from "next";
 interface PageProps {
   params: {
     category: string;
+  };
+  searchParams: {
+    from?: string;
+    to?: string;
   };
 }
 
@@ -60,12 +64,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default function CategoryPage({ params }: PageProps) {
-  const { category } = params;
-  
-  return (
-    <UnitConverterPage 
-      categoryId={category}
-    />
-  );
+export default function CategoryPage({ params, searchParams }: PageProps) {
+  const { category: categoryId } = params;
+  const { from, to } = searchParams;
+
+  // Redirect query-based URLs to SEO-friendly paths
+  if (from && to) {
+    redirect(`/convert/${categoryId}/${from}-to-${to}`);
+  }
+
+  return <UnitConverterPage categoryId={categoryId} />;
 }

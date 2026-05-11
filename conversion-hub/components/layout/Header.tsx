@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Moon, Sun } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -22,6 +23,15 @@ const navItems = [
 export function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { setTheme, resolvedTheme } = useTheme();
+
+  const toggleTheme = () => {
+    if (resolvedTheme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 glass-dark backdrop-blur-xl">
@@ -68,6 +78,37 @@ export function Header() {
             >
               <Search className="w-5 h-5 text-muted-foreground" />
             </Link>
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl hover:bg-accent/10 transition-colors"
+              aria-label="Toggle theme"
+            >
+              <AnimatePresence mode="wait">
+                {resolvedTheme === "dark" ? (
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Sun className="w-5 h-5 text-muted-foreground" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Moon className="w-5 h-5 text-muted-foreground" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
 
             {/* Mobile menu button */}
             <button
