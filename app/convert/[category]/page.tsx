@@ -1,5 +1,5 @@
 import { GetStaticPaths } from "next";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { UnitConverterPage } from "@/components/converter/UnitConverterPage";
 import { getCategoryById, conversionCategories } from "@/data/conversions";
 import { Metadata } from "next";
@@ -29,6 +29,24 @@ export const getStaticPaths: GetStaticPaths = async () => {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category: categoryId } = params;
+
+  // Special handling for currency
+  if (categoryId === "currency") {
+    return {
+      title: "Currency Converter - Live Exchange Rates | Conversion Hub",
+      description: "Convert 180+ world currencies with live forex rates, historical charts, and accurate conversions.",
+      openGraph: {
+        title: "Global Currency Converter",
+        description: "Real-time currency conversion for all major world currencies.",
+        type: "website",
+        url: "https://conversionhub.com/currency",
+      },
+      alternates: {
+        canonical: "https://conversionhub.com/currency",
+      },
+    };
+  }
+
   const category = getCategoryById(categoryId);
   
   if (!category) {
@@ -68,9 +86,23 @@ export default function CategoryPage({ params, searchParams }: PageProps) {
   const { category: categoryId } = params;
   const { from, to } = searchParams;
 
+  // Special handling for currency category
+  if (categoryId === "currency") {
+    // If query params provided, redirect to specific currency pair
+    if (from && to) {
+      redirect(`/currency/${from}/to/${to}`);
+    }
+    redirect("/currency");
+  }
+
   // Redirect query-based URLs to SEO-friendly paths
   if (from && to) {
     redirect(`/convert/${categoryId}/${from}-to-${to}`);
+  }
+
+  const category = getCategoryById(categoryId);
+  if (!category) {
+    notFound();
   }
 
   return <UnitConverterPage categoryId={categoryId} />;

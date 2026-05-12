@@ -143,9 +143,23 @@ export const conversionCategories: ConversionCategory[] = [
       petabyte: { name: "Petabyte", symbol: "PB", factor: 1125899906842624 },
     },
   },
+  // Placeholder for currency - actual implementation is separate
+  {
+    id: "currency",
+    name: "Currency",
+    description: "Convert between 180+ world currencies with live exchange rates",
+    icon: "💱",
+    color: "from-emerald-400 to-teal-500",
+    baseUnit: "USD",
+    units: { USD: { name: "US Dollar", symbol: "$", factor: 1 } },
+  },
 ];
 
 export const getCategoryById = (id: string): ConversionCategory | undefined => {
+  // Special case for currency - redirect concept
+  if (id === "currency") {
+    return undefined; // Will be handled by separate route
+  }
   return conversionCategories.find((cat) => cat.id === id);
 };
 
