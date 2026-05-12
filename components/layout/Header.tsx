@@ -59,8 +59,8 @@ export function Header() {
                     "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
                     "hover:bg-accent/10 hover:text-accent",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground"
+                      ? "bg-primary/20 text-primary ring-2 ring-primary/50 shadow-sm"
+                      : "text-muted-foreground hover:bg-accent/5"
                   )}
                 >
                   {item.label}

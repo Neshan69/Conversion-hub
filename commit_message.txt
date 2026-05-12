@@ -1,0 +1,23 @@
+fix(routing): resolve Category Not Found for all unit converters
+
+Pass the pre-validated category object from server to client to ensure
+SSR/CSR consistency. Server now computes category and passes as prop,
+eliminating client-side lookup mismatch that caused undefined errors.
+
+Fixes navbar routes for: Length, Weight, Temperature, Speed, Area, Volume,
+Time, Storage — all now load correctly without "Category Not Found".
+
+style(ui): premium polish across key components
+
+- Header: active nav pill with ring glow (ring-2 ring-primary/50), improved
+  hover states (subtle bg-accent/5), smoother transitions
+- Category cards (home & converter pages): elevated lift (-translate-y-2),
+  stronger shadows (shadow-2xl, shadow-primary/20), brighter hover borders
+  (border-primary/50), extended transition duration (300ms)
+- CategoryGrid: same lift and shadow enhancements, refined card spacing
+- Visual consistency: upgraded glassmorphism depth (backdrop-blur-xl already),
+  smoother motion curves via Framer Motion
+
+All changes maintain the existing dark blue/purple theme while elevating
+the overall SaaS-grade polish and trustworthiness. Conversion Hub now feels
+like a professional fintech utility platform.

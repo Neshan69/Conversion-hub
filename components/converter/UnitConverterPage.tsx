@@ -9,19 +9,25 @@ import { ConversionTable } from "@/components/converter/ConversionTable";
 import { ConversionFormula } from "@/components/converter/ConversionFormula";
 import { RecentConversionsPanel } from "@/components/converter/RecentConversionsPanel";
 import { ConverterStructuredData } from "@/components/seo/ConverterStructuredData";
+import { ConversionCategory } from "@/types/converter";
 
 interface UnitConverterPageProps {
   categoryId: string;
   initialFromUnit?: string;
   initialToUnit?: string;
+  category?: ConversionCategory; // optional, passed from server for SSR safety
 }
 
-export function UnitConverterPage({ 
-  categoryId, 
-  initialFromUnit, 
-  initialToUnit 
+export function UnitConverterPage({
+  categoryId,
+  initialFromUnit,
+  initialToUnit,
+  category: initialCategory
 }: UnitConverterPageProps) {
-  const category = useMemo(() => getCategoryById(categoryId), [categoryId]);
+  const category = useMemo(() => {
+    if (initialCategory) return initialCategory;
+    return getCategoryById(categoryId);
+  }, [categoryId, initialCategory]);
 
   if (!category) {
     return (

@@ -119,6 +119,7 @@ export default function ConverterPage({ params }: PageProps) {
 
   return (
     <UnitConverterPage
+      category={category}
       categoryId={category.id}
       initialFromUnit={fromUnit}
       initialToUnit={toUnit}

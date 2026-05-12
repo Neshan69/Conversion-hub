@@ -105,5 +105,5 @@ export default function CategoryPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  return <UnitConverterPage categoryId={categoryId} />;
+  return <UnitConverterPage category={category} categoryId={categoryId} />;
 }
