@@ -24,28 +24,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category: categoryId } = params;
 
-  // Special handling for currency (redirects to separate section)
-  if (categoryId === "currency") {
-    return {
-      title: "Currency Converter - Live Exchange Rates | Conversion Hub",
-      description: "Convert 180+ world currencies with live forex rates, historical charts, and accurate conversions.",
-      openGraph: {
-        title: "Global Currency Converter",
-        description: "Real-time currency conversion for all major world currencies.",
-        type: "website",
-        url: "https://conversionhub.com/currency",
-      },
-      alternates: {
-        canonical: "https://conversionhub.com/currency",
-      },
-      robots: { index: false, follow: false }, // Prevent indexing duplicate currency page
-    };
-  }
-
   const category = getCategoryById(categoryId);
 
   if (!category) {
-    // Let Next.js handle 404
     return {
       title: "Converter Not Found",
       description: "The requested converter category is not available.",
@@ -69,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      url: `https://conversionhub.com/convert/${categoryId}`,
+      url: `https://conversionhub.com/unit/${categoryId}`,
       type: "website",
       images: [
         {
@@ -81,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ],
     },
     alternates: {
-      canonical: `https://conversionhub.com/convert/${categoryId}`,
+      canonical: `https://conversionhub.com/unit/${categoryId}`,
     },
     robots: {
       index: true,
@@ -94,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CategoryPage({ params, searchParams }: PageProps) {
+export default async function UnitCategoryPage({ params, searchParams }: PageProps) {
   const { category: categoryId } = params;
   const { from, to } = searchParams;
 
@@ -105,7 +86,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     notFound();
   }
 
-  // Pass category data to client component to avoid hydration mismatch
   return (
     <UnitConverterPage
       category={category}

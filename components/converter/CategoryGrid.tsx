@@ -39,10 +39,10 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
       viewport={{ once: true }}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
     >
-       {categories.map((category) => (
-         <motion.div key={category.id} variants={itemVariants}>
+        {categories.map((category) => (
+          <motion.div key={category.id} variants={itemVariants}>
             <Link
-              href={category.id === "currency" ? "/currency" : `/convert/${category.id}`}
+              href={`/unit/${category.id}`}
               className="group block h-full"
             >
                <div className="h-full p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 transition-all duration-300 group">

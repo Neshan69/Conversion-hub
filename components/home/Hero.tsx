@@ -169,7 +169,7 @@ export function Hero() {
             {conversionCategories.slice(0, 6).map((category) => (
               <Link
                 key={category.id}
-                href={`/convert/${category.id}`}
+                href={`/unit/${category.id}`}
                 className="group px-5 py-2.5 rounded-full bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-md"
               >
                 <span className="text-sm font-medium text-foreground group-hover:text-primary flex items-center gap-2">
