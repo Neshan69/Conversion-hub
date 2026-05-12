@@ -10,14 +10,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 
 const navItems = [
   { label: "Home", href: "/" },
-  { label: "Length", href: "/convert/length" },
-  { label: "Weight", href: "/convert/weight" },
-  { label: "Temperature", href: "/convert/temperature" },
-  { label: "Speed", href: "/convert/speed" },
-  { label: "Area", href: "/convert/area" },
-  { label: "Volume", href: "/convert/volume" },
-  { label: "Time", href: "/convert/time" },
-  { label: "Storage", href: "/convert/storage" },
+  { label: "Unit", href: "/convert" },
   { label: "Currency", href: "/currency", highlight: true },
 ];
 

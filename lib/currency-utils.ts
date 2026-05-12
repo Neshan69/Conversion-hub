@@ -54,11 +54,12 @@ export function useLiveRates(baseCurrency: string = "USD") {
 // ============================================
 export function useCurrencyConverter(
   baseCurrency: string,
-  rates: ExchangeRates | null
+  rates: ExchangeRates | null,
+  initialTo?: string
 ) {
   const [amount, setAmount] = useState<string>("1");
   const [fromCurrency, setFromCurrency] = useState(baseCurrency);
-  const [toCurrency, setToCurrency] = useState<string>("EUR");
+  const [toCurrency, setToCurrency] = useState<string>(initialTo || "EUR");
   const [result, setResult] = useState<number | null>(null);
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
 

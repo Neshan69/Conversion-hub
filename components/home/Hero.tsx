@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Search, Globe, Zap, Shield, Clock } from "lucide-react";
-import { Converter } from "@/components/converter/Converter";
+import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
 import { conversionCategories, currencyCategory } from "@/data/conversions";
 
 export function Hero() {
@@ -128,8 +128,8 @@ export function Hero() {
           <div className="relative rounded-3xl bg-card/80 backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden">
             {/* Glow effect behind converter */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-            <div className="relative p-1">
-              <Converter categoryId="length" />
+            <div className="relative p-6 md:p-8">
+              <CurrencyConverter compact={false} />
             </div>
           </div>
         </motion.div>

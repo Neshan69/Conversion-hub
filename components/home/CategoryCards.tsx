@@ -26,8 +26,8 @@ const itemVariants = {
 };
 
 export function CategoryCards() {
-  // Combine standard conversion categories with currency as a special category
-  const allCategories = [...conversionCategories, currencyCategory];
+  // Reorder: Currency first (primary feature), then all unit converters
+  const allCategories = [currencyCategory, ...conversionCategories];
 
   return (
     <section className="py-20 md:py-32 bg-muted/30">

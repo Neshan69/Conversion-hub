@@ -52,7 +52,7 @@ export function CurrencyConverter({
     convertedAmount,
     swapCurrencies,
     numericAmount,
-  } = useCurrencyConverter(baseFrom, rates);
+  } = useCurrencyConverter(baseFrom, rates, initialTo);
 
   // Initialize from props
   useEffect(() => {
