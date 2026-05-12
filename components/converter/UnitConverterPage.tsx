@@ -15,19 +15,21 @@ interface UnitConverterPageProps {
   categoryId: string;
   initialFromUnit?: string;
   initialToUnit?: string;
-  category?: ConversionCategory; // optional, passed from server for SSR safety
+  // Pre-fetched category from server (optional, for SSR/SSG)
+  category?: ConversionCategory | null;
 }
 
-export function UnitConverterPage({
-  categoryId,
+export function UnitConverterPage({ 
+  categoryId, 
   initialFromUnit,
   initialToUnit,
-  category: initialCategory
+  category: serverCategory
 }: UnitConverterPageProps) {
+  // Use server-provided category if available, otherwise fetch on client
   const category = useMemo(() => {
-    if (initialCategory) return initialCategory;
+    if (serverCategory) return serverCategory;
     return getCategoryById(categoryId);
-  }, [categoryId, initialCategory]);
+  }, [categoryId, serverCategory]);
 
   if (!category) {
     return (

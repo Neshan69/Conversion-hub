@@ -1,11 +1,11 @@
 import { Metadata } from "next";
-import { conversionCategories } from "@/data/conversions";
+import { conversionCategories, currencyCategory } from "@/data/conversions";
 import { CategoryGrid } from "@/components/converter/CategoryGrid";
 
 export const metadata: Metadata = {
   title: "All Converters – Unit, Currency, File & Data Converters",
   description: "Browse all conversion tools. Unit converters, currency converters, file converters, and more. Fast, accurate, and completely free.",
-  keywords: conversionCategories.map(c => c.name.toLowerCase()).join(", ") + ", converters, online tools",
+  keywords: [...conversionCategories.map(c => c.name.toLowerCase()), "currency", "converters", "online tools"].join(", "),
   openGraph: {
     title: "All Converters – Conversion Hub",
     description: "All conversion tools in one place",
@@ -18,6 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default function ConvertPage() {
+  // Combine standard categories with currency
+  const allCategories = [...conversionCategories, currencyCategory];
+
   return (
     <div className="min-h-screen">
       <section className="py-12 md:py-20 bg-gradient-to-b from-muted/50 to-background">
@@ -32,7 +35,7 @@ export default function ConvertPage() {
           </div>
 
           <div className="mt-12">
-            <CategoryGrid categories={conversionCategories} />
+            <CategoryGrid categories={allCategories} />
           </div>
         </div>
       </section>
