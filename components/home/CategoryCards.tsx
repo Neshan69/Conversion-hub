@@ -61,32 +61,38 @@ export function CategoryCards() {
                 href={category.id === "currency" ? "/currency" : `/convert/${category.id}`}
                 className="group block h-full"
               >
-                <div className="h-full p-6 rounded-2xl bg-card border border-border hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 transition-all duration-300 group">
-                  {/* Icon and color accent */}
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                    {category.icon}
-                  </div>
+            <div className="h-full p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 transition-all duration-300 group">
+              {/* Icon and color accent */}
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                {category.icon}
+              </div>
 
-                  {/* Content */}
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                    {category.name}
-                    {category.id === "currency" && (
-                      <span className="ml-2 text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full font-normal">
-                        NEW
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {category.description}
-                  </p>
+              {/* Content */}
+              <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+                {category.name}
+                {category.id === "currency" && (
+                  <span className="ml-2 text-xs px-2 py-0.5 bg-gradient-to-r from-primary/20 to-accent/20 text-primary rounded-full font-normal border border-primary/10">
+                    NEW
+                  </span>
+                )}
+              </h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {category.description}
+              </p>
 
-                  {/* Unit count */}
-                  <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="px-2 py-1 rounded-lg bg-muted">
-                      {category.id === "currency" ? "180+ currencies" : `${Object.keys(category.units).length} units`}
-                    </span>
-                  </div>
-                </div>
+              {/* Unit count with icon */}
+              <div className="mt-auto pt-4 border-t border-border/30 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-lg">
+                  {category.id === "currency" ? "🌍 180+ currencies" : `${Object.keys(category.units).length} units`}
+                </span>
+                <span className="text-xs text-primary font-medium group-hover:underline flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
               </Link>
             </motion.div>
           ))}
