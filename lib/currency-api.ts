@@ -1,8 +1,6 @@
-"use client";
-
-import { getCurrencyByCode } from "@/types/currency";
-
 // Cache configuration
+import { currencies, getCurrencyByCode } from "@/types/currency";
+
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const RATES_CACHE_KEY = "conversion-hub-rates";
 const HISTORICAL_CACHE_KEY = "conversion-hub-historical-";
@@ -49,21 +47,39 @@ let memoryCache: Record<string, { data: ExchangeRates; timestamp: number }> = {}
 
 // Get all currency codes
 function getAllCurrencyCodes(): string[] {
-  // Import dynamically to avoid circular dependency
-  const currenciesModule = require("@/types/currency");
-  const currencies = currenciesModule.currencies as Array<{ code: string }>;
   return currencies.map(c => c.code);
 }
 
-// Format date for historical API (YYYY-MM-DD)
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+// Check network connectivity
+export function isOnline(): boolean {
+  if (typeof navigator === "undefined") return true;
+  return navigator.onLine;
 }
 
-// Get days between dates
-function getDaysBetween(start: Date, end: Date): number {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  return Math.floor((end.getTime() - start.getTime()) / msPerDay);
+// Fetch with exponential backoff retry
+async function fetchWithRetry(url: string, maxRetries = 3, baseDelay = 1000): Promise<Response> {
+  let lastError: Error | undefined;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        next: { revalidate: CACHE_TTL / 1000 },
+        signal: AbortSignal.timeout(10000),
+      });
+      
+      if (response.ok) return response;
+      throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError || new Error("Network request failed");
 }
 
 // ============================================
@@ -76,6 +92,18 @@ export async function fetchLiveRates(
 ): Promise<ExchangeRates> {
   const cacheKey = `${RATES_CACHE_KEY}_${baseCurrency}`;
   const now = Date.now();
+
+  // Check network connectivity first
+  if (!isOnline()) {
+    // Return cached data even if stale when offline
+    const staleCacheStr = localStorage.getItem(cacheKey);
+    if (staleCacheStr) {
+      const stale = JSON.parse(staleCacheStr);
+      console.warn("Offline mode: Using cached rates");
+      return { ...stale, source: "offline-cache" };
+    }
+    throw new Error("No internet connection and no cached data available");
+  }
 
   // Check memory cache first
   if (!forceRefresh && memoryCache[cacheKey]) {
@@ -107,13 +135,7 @@ export async function fetchLiveRates(
   for (const [source, urlBuilder] of Object.entries(API_ENDPOINTS)) {
     try {
       const url = urlBuilder(baseCurrency);
-      const response = await fetch(url, {
-        next: { revalidate: CACHE_TTL / 1000 }, // Next.js ISR
-        signal: AbortSignal.timeout(10000), // 10s timeout
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
+      const response = await fetchWithRetry(url);
       const data = await response.json();
 
       // Normalize response from different APIs
@@ -152,9 +174,9 @@ export async function fetchLiveRates(
       localStorage.setItem(`${TIMESTAMP_CACHE_KEY}_${baseCurrency}`, now.toString());
 
       return result;
-    } catch (error: any) {
-      lastError = error;
-      console.warn(`Failed to fetch from ${source}:`, error.message);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`Failed to fetch from ${source}:`, lastError.message);
       continue; // Try next API
     }
   }
@@ -164,7 +186,7 @@ export async function fetchLiveRates(
   if (staleCacheStr) {
     const stale = JSON.parse(staleCacheStr);
     console.warn("Using stale cached rates due to API failures");
-    return stale;
+    return { ...stale, source: "stale-cache" };
   }
 
   throw new Error(

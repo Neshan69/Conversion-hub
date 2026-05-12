@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { fetchLiveRates, fetchHistoricalRates, convertCurrency, clearCurrencyCache, isCacheStale } from "@/lib/currency-api";
+import { fetchLiveRates, fetchHistoricalRates, convertCurrency, isCacheStale, isOnline } from "@/lib/currency-api";
 import { ExchangeRates } from "@/lib/currency-api";
 import { getCurrencyByCode } from "@/types/currency";
 
@@ -11,6 +11,9 @@ const MAX_RECENT = 10;
 
 // Favorites (localStorage)
 const FAVORITES_KEY = "conversion-hub-favorite-currencies";
+
+// Polling interval: 5 minutes
+const POLL_INTERVAL = 5 * 60 * 1000;
 
 // ============================================
 // HOOK: Use Live Exchange Rates
@@ -28,8 +31,8 @@ export function useLiveRates(baseCurrency: string = "USD") {
       const data = await fetchLiveRates(baseCurrency, force);
       setRates(data);
       setLastUpdated(new Date(data.timestamp));
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch rates");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch rates");
     } finally {
       setLoading(false);
     }
@@ -37,6 +40,15 @@ export function useLiveRates(baseCurrency: string = "USD") {
 
   useEffect(() => {
     refresh();
+    
+    // Set up 5-minute polling
+    const intervalId = setInterval(() => {
+      if (isOnline()) {
+        refresh(true);
+      }
+    }, POLL_INTERVAL);
+    
+    return () => clearInterval(intervalId);
   }, [refresh]);
 
   return {
@@ -46,6 +58,7 @@ export function useLiveRates(baseCurrency: string = "USD") {
     lastUpdated,
     refresh,
     isStale: rates ? isCacheStale(baseCurrency) : true,
+    isOnline: isOnline(),
   };
 }
 
@@ -60,7 +73,6 @@ export function useCurrencyConverter(
   const [amount, setAmount] = useState<string>("1");
   const [fromCurrency, setFromCurrency] = useState(baseCurrency);
   const [toCurrency, setToCurrency] = useState<string>(initialTo || "EUR");
-  const [result, setResult] = useState<number | null>(null);
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
 
   const numericAmount = parseFloat(amount) || 0;
@@ -95,8 +107,8 @@ export function useCurrencyConverter(
     setAmount,
     fromCurrency,
     toCurrency,
-    setFrom: setFrom,
-    setTo: setTo,
+    setFrom,
+    setTo,
     convertedAmount,
     swapCurrencies,
     numericAmount,

@@ -13,9 +13,10 @@ import {
   getFavoriteCurrencies,
   toggleFavoriteCurrency
 } from "@/lib/currency-utils";
-import { RefreshCw, Copy, Star, Share2, TrendingUp, Clock, BarChart3 } from "lucide-react";
+import { RefreshCw, Copy, Star, Share2, TrendingUp, Clock, BarChart3, WifiOff } from "lucide-react";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { getCurrencyByCode } from "@/types/currency";
+import { isOnline } from "@/lib/currency-api";
 
 interface CurrencyConverterProps {
   initialFrom?: string;
@@ -39,7 +40,20 @@ export function CurrencyConverter({
   const [baseTo] = useState(() => initialTo || "USD");
 
   // Fetch live rates
-  const { rates, loading, error, refresh, isStale } = useLiveRates(baseFrom);
+  const { rates, loading, error, refresh, isStale, lastUpdated, isOnline: online } = useLiveRates(baseFrom);
+
+  // Track online status
+  const [onlineStatus, setOnlineStatus] = useState(online);
+  
+  useEffect(() => {
+    const updateOnlineStatus = () => setOnlineStatus(isOnline());
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
 
   // Converter state
   const {
@@ -87,7 +101,7 @@ export function CurrencyConverter({
   );
 
   // Formatting
-  const convertedFormatted = useMemo(() => {
+   const convertedFormatted = useMemo(() => {
     if (convertedAmount === null) return "";
     return formatCurrency(convertedAmount, toCurrency);
   }, [convertedAmount, toCurrency]);
@@ -96,6 +110,12 @@ export function CurrencyConverter({
     if (!rate) return "";
     return formatCurrency(rate, toCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
   }, [rate, toCurrency]);
+
+  // Format last updated time
+  const lastUpdatedFormatted = useMemo(() => {
+    if (!lastUpdated) return "";
+    return lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }, [lastUpdated]);
 
   // Actions
   const handleCopy = useCallback(async () => {
@@ -114,10 +134,7 @@ export function CurrencyConverter({
 
   const handleSwap = useCallback(() => {
     swapCurrencies();
-    // Also swap the base currency for rate fetching
-    setFrom(toCurrency);
-    setTo(fromCurrency);
-  }, [swapCurrencies, fromCurrency, toCurrency, setFrom, setTo]);
+  }, [swapCurrencies]);
 
   // Favorites
   const [favorites, setFavorites] = useState(() => getFavoriteCurrencies());
@@ -338,6 +355,21 @@ export function CurrencyConverter({
           <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm">
             <Clock className="w-4 h-4 inline mr-2" />
             Rates may be outdated. Click Refresh for latest.
+          </div>
+        )}
+
+        {/* Offline warning */}
+        {!onlineStatus && (
+          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+            <WifiOff className="w-4 h-4 inline mr-2" />
+            You're offline. Showing cached rates.
+          </div>
+        )}
+
+        {/* Last updated */}
+        {lastUpdated && !loading && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Last updated: {lastUpdatedFormatted}
           </div>
         )}
       </motion.div>
