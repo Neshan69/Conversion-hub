@@ -44,13 +44,8 @@ export function Hero() {
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-primary/5 to-accent/5 rounded-full blur-3xl"
       />
 
-      {/* Grain texture overlay for premium feel */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz9wcmVmaXggVW5pdGJyaW5lZQp4bWxuczpncmFkaWVudGluZz0iaGVhZGVyIGJveCBzaGFwZSIK relevance xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" opacity="0.03">
-        <filter id="noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#noise)" />
-      </div>
+      {/* Grain texture overlay for premium feel (optional subtle noise) */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.1),transparent_50%)] pointer-events-none" />
 
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
         {/* Badge and Trust indicators */}
