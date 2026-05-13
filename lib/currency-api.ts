@@ -50,6 +50,11 @@ function getAllCurrencyCodes(): string[] {
   return currencies.map(c => c.code);
 }
 
+// Format date as YYYY-MM-DD
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
 // Check network connectivity
 export function isOnline(): boolean {
   if (typeof navigator === "undefined") return true;

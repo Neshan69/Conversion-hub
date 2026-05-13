@@ -19,10 +19,12 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { setTheme, resolvedTheme } = useTheme();
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
+   // Close mobile menu on route change
+   useEffect(() => {
+     Promise.resolve().then(() => {
+       setMobileMenuOpen(false);
+     });
+   }, [pathname]);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");

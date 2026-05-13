@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, Star, Clock } from "lucide-react";
-import { searchCurrencies, getPopularCurrencies, Currency } from "@/types/currency";
+import { searchCurrencies, getPopularCurrencies, Currency, getCurrencyByCode } from "@/types/currency";
 import { getRecentCurrencies, getFavoriteCurrencies, addRecentCurrency } from "@/lib/currency-utils";
 
 interface CurrencySelectProps {
@@ -40,6 +40,31 @@ export function CurrencySelect({
     searchCurrencies(value)[0] || null, [value]
   );
 
+  const handleSelect = useCallback((code: string) => {
+    onChange(code);
+    setIsOpen(false);
+    setQuery("");
+    // Add to recent
+    addRecentCurrency(code);
+  }, [onChange]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    setIsOpen(true);
+  }, []);
+
+  const handleContainerClick = useCallback(() => {
+    if (!isOpen) {
+      setIsOpen(true);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  const clearQuery = useCallback(() => {
+    setQuery("");
+    inputRef.current?.focus();
+  }, []);
+
   // Get filtered results
   const filteredResults = useMemo(() => {
     let results = searchCurrencies(query);
@@ -49,16 +74,26 @@ export function CurrencySelect({
     
     // Remove selected currency
     results = results.filter(c => c.code !== value);
-
+    
     // Deduplicate
     results = results.filter((c, i, arr) => 
       arr.findIndex(x => x.code === c.code) === i
     );
-
+    
     return results.slice(0, 50); // Limit for performance
   }, [query, exclude, value]);
 
   // Build display list with sections
+  const recentCodes = showRecent ? getRecentCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
+  const favoriteCodes = showFavorites ? getFavoriteCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
+  const popularCodes = showPopular ? getPopularCurrencies().filter(c => !exclude.includes(c.code) && c.code !== value) : [];
+  const resultItems = filteredResults
+    .filter(c => {
+      // Exclude already shown currencies
+      const shownCodes = [...recentCodes, ...favoriteCodes, ...popularCodes];
+      return !shownCodes.includes(c.code);
+    });
+
   const displaySections = useMemo(() => {
     const sections: Array<{
       type: "recent" | "favorites" | "popular" | "results";
@@ -66,39 +101,67 @@ export function CurrencySelect({
       items: Currency[];
     }> = [];
 
-    const recentCodes = showRecent ? getRecentCurrencies().filter(c => !exclude.includes(c) && c !== value) : [];
     if (recentCodes.length > 0) {
       const recentItems = recentCodes
-        .map(code => searchCurrencies(code)[0])
-        .filter(Boolean) as Currency[];
+        .map(code => {
+          const currency = getCurrencyByCode(code);
+          return currency || null;
+        })
+        .filter((item): item is Currency => item !== null);
       sections.push({ type: "recent", label: "Recent", items: recentItems });
     }
 
-    const favoriteCodes = showFavorites ? getFavoriteCurrencies().filter(c => !exclude.includes(c) && c !== value) : [];
     if (favoriteCodes.length > 0) {
       const favoriteItems = favoriteCodes
-        .map(code => searchCurrencies(code)[0])
-        .filter(Boolean) as Currency[];
+        .map(code => {
+          const currency = getCurrencyByCode(code);
+          return currency || null;
+        })
+        .filter((item): item is Currency => item !== null);
       sections.push({ type: "favorites", label: "Favorites", items: favoriteItems });
     }
 
-    if (showPopular && !query) {
-      const popularItems = getPopularCurrencies().filter(c => !exclude.includes(c.code) && c.code !== value);
-      sections.push({ type: "popular", label: "Popular Currencies", items: popularItems });
+    if (popularCodes.length > 0) {
+      const popularItems = popularCodes
+        .filter((item): item is Currency => item !== null);
+      sections.push({ type: "popular", label: "Popular", items: popularItems });
     }
 
-    if (query && filteredResults.length > 0) {
-      sections.push({ type: "results", label: "Results", items: filteredResults });
+    // Always show search results if there's a query or no other sections
+    if (query.trim() !== '' || sections.length === 0) {
+      sections.push({ type: "results", label: "Results", items: resultItems });
     }
 
     return sections;
-  }, [query, filteredResults, exclude, value, showRecent, showFavorites, showPopular]);
+  }, [recentCodes, favoriteCodes, popularCodes, resultItems, query]);
 
-  // Flatten all items for keyboard navigation
-  const allItems = useMemo(() => 
-    displaySections.flatMap(s => s.items),
-    [displaySections]
-  );
+  // Combine all items for keyboard navigation
+  const allItems = useMemo(() => {
+    const recentItems: Currency[] = recentCodes
+      .map(code => {
+        const currency = getCurrencyByCode(code);
+        return currency || null;
+      })
+      .filter((item): item is Currency => item !== null);
+    
+    const favoriteItems: Currency[] = favoriteCodes
+      .map(code => {
+        const currency = getCurrencyByCode(code);
+        return currency || null;
+      })
+      .filter((item): item is Currency => item !== null);
+    
+    const popularItems: Currency[] = popularCodes
+      .filter((item): item is Currency => item !== null);
+    
+    const resultItemsArray: Currency[] = resultItems
+      .filter((item): item is Currency => item !== null);
+    
+    const combined: Currency[] = [...recentItems, ...favoriteItems, ...popularItems, ...resultItemsArray];
+    return combined.filter((item, index, self) => 
+      index === self.findIndex(t => t.code === item.code)
+    );
+  }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -138,8 +201,8 @@ export function CurrencySelect({
           setIsOpen(false);
         }
         break;
-    }
-  }, [isOpen, allItems, highlightedIndex, query, value]);
+      }
+    }, [isOpen, allItems, highlightedIndex, query, value]);
 
   // Scroll highlighted item into view
   useEffect(() => {
@@ -154,32 +217,7 @@ export function CurrencySelect({
   // Reset highlighted index when results change
   useEffect(() => {
     setHighlightedIndex(-1);
-  }, [query, displaySections]);
-
-  const handleSelect = useCallback((code: string) => {
-    onChange(code);
-    setIsOpen(false);
-    setQuery("");
-    // Add to recent
-    addRecentCurrency(code);
-  }, [onChange]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-    setIsOpen(true);
-  }, []);
-
-  const handleContainerClick = useCallback(() => {
-    if (!isOpen) {
-      setIsOpen(true);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isOpen]);
-
-  const clearQuery = useCallback(() => {
-    setQuery("");
-    inputRef.current?.focus();
-  }, []);
+  }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
 
   return (
     <div ref={containerRef} className={`relative ${className}`} onKeyDown={handleKeyDown}>
@@ -290,8 +328,8 @@ export function CurrencySelect({
                             isHighlighted
                               ? "bg-primary/10 text-primary"
                               : isSelected
-                              ? "bg-muted text-foreground"
-                              : "hover:bg-accent/5"
+                                ? "bg-muted text-foreground"
+                                : "hover:bg-accent/5"
                           }`}
                         >
                           {/* Flag */}

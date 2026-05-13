@@ -33,9 +33,14 @@ export function ThemeProvider({
     const stored = localStorage.getItem(storageKey) as Theme | null;
     return stored || defaultTheme;
   });
-  
+   
   // Track system preference separately
-  const [systemTheme, setSystemTheme] = useState<"dark" | "light">("light");
+  const [systemTheme, setSystemTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "light";
+    
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    return mediaQuery.matches ? "dark" : "light";
+  });
 
   // Detect initial system theme
   useEffect(() => {

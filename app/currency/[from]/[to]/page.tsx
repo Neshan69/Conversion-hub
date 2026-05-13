@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
-import { getCurrencyByCode, searchCurrencies } from "@/types/currency";
+import { getCurrencyByCode } from "@/types/currency";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface PageProps {
   params: {
@@ -36,9 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const amount = "1";
-  const title = `${from} to ${to} Live Currency Converter (${fromCurrency.name} → ${toCurrency.name}) | Conversion Hub`;
-  const description = `Convert ${from} to ${to} using live exchange rates. ${fromCurrency.name} to ${toCurrency.name} converter with historical data, charts, and accurate rates. Free and instant.`;
+   const title = `${from} to ${to} Live Currency Converter (${fromCurrency.name} → ${toCurrency.name}) | Conversion Hub`;
+   const description = `Convert ${from} to ${to} using live exchange rates. ${fromCurrency.name} to ${toCurrency.name} converter with historical data, charts, and accurate rates. Free and instant.`;
 
   return {
     title,
@@ -119,19 +119,19 @@ export default async function CurrencyPairPage({ params, searchParams }: PagePro
       {/* Breadcrumb */}
       <nav className="bg-muted/30 border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-            <li>
-              <a href="/" className="hover:text-primary transition-colors">Home</a>
-            </li>
-            <li>/</li>
-            <li>
-              <a href="/currency" className="hover:text-primary transition-colors">Currency</a>
-            </li>
-            <li>/</li>
-            <li className="font-medium text-foreground">
-              {upperFrom} → {upperTo}
-            </li>
-          </ol>
+           <ol className="flex items-center gap-2 text-sm text-muted-foreground">
+             <li>
+               <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+             </li>
+             <li>/</li>
+             <li>
+               <Link href="/currency" className="hover:text-primary transition-colors">Currency</Link>
+             </li>
+             <li>/</li>
+             <li className="font-medium text-foreground">
+               {upperFrom} → {upperTo}
+             </li>
+           </ol>
         </div>
       </nav>
 

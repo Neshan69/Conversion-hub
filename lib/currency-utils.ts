@@ -38,18 +38,21 @@ export function useLiveRates(baseCurrency: string = "USD") {
     }
   }, [baseCurrency]);
 
-  useEffect(() => {
-    refresh();
-    
-    // Set up 5-minute polling
-    const intervalId = setInterval(() => {
-      if (isOnline()) {
-        refresh(true);
-      }
-    }, POLL_INTERVAL);
-    
-    return () => clearInterval(intervalId);
-  }, [refresh]);
+   useEffect(() => {
+     Promise.resolve().then(() => refresh());
+     
+     // Set up 5-minute polling
+     const intervalId = setInterval(() => {
+       if (isOnline()) {
+         refresh(true);
+       }
+     }, POLL_INTERVAL);
+     
+     // Cleanup
+     return () => {
+       clearInterval(intervalId);
+     };
+   }, [refresh]);
 
   return {
     rates,
@@ -77,17 +80,19 @@ export function useCurrencyConverter(
 
   const numericAmount = parseFloat(amount) || 0;
 
-  // Perform conversion when inputs change
-  useEffect(() => {
-    if (!rates || !fromCurrency || !toCurrency) return;
+   // Perform conversion when inputs change
+   useEffect(() => {
+     if (!rates || !fromCurrency || !toCurrency) return;
 
-    try {
-      const converted = convertCurrency(numericAmount, fromCurrency, toCurrency, rates);
-      setConvertedAmount(converted);
-    } catch {
-      setConvertedAmount(null);
-    }
-  }, [rates, numericAmount, fromCurrency, toCurrency]);
+     Promise.resolve().then(() => {
+       try {
+         const converted = convertCurrency(numericAmount, fromCurrency, toCurrency, rates);
+         setConvertedAmount(converted);
+       } catch {
+         setConvertedAmount(null);
+       }
+     });
+   }, [rates, numericAmount, fromCurrency, toCurrency]);
 
   const swapCurrencies = useCallback(() => {
     setFromCurrency(toCurrency);
@@ -127,30 +132,36 @@ export function useHistoricalRates(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!baseCurrency || !targetCurrency) return;
+   useEffect(() => {
+     if (!baseCurrency || !targetCurrency) return;
 
-    let cancelled = false;
-    setLoading(true);
+     let cancelled = false;
+     Promise.resolve().then(() => {
+       setLoading(true);
+     });
 
-    fetchHistoricalRates(baseCurrency, targetCurrency, days)
-      .then(rates => {
-        if (!cancelled) {
-          setData(rates);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        if (!cancelled) {
-          setError(err.message);
-          setLoading(false);
-        }
-      });
+     fetchHistoricalRates(baseCurrency, targetCurrency, days)
+       .then(rates => {
+         if (!cancelled) {
+           Promise.resolve().then(() => {
+             setData(rates);
+             setLoading(false);
+           });
+         }
+       })
+       .catch(err => {
+         if (!cancelled) {
+           Promise.resolve().then(() => {
+             setError(err.message);
+             setLoading(false);
+           });
+         }
+       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [baseCurrency, targetCurrency, days]);
+     return () => {
+       cancelled = true;
+     };
+   }, [baseCurrency, targetCurrency, days]);
 
   return { data, loading, error };
 }

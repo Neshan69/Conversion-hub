@@ -191,12 +191,12 @@ export function CurrencyPageClient() {
               </h2>
               
               <div className="prose prose-slate dark:prose-invert max-w-none">
-                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  Our currency converter provides real-time exchange rates for 180+ world currencies, 
-                  using reliable data from multiple trusted financial APIs. Whether you're traveling, 
-                  doing business internationally, or monitoring forex markets, our tool gives you 
-                  accurate conversions with historical trend analysis.
-                </p>
+                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                   Our currency converter provides real-time exchange rates for 180+ world currencies, 
+                   using reliable data from multiple trusted financial APIs. Whether you&apos;re traveling, 
+                   doing business internationally, or monitoring forex markets, our tool gives you 
+                   accurate conversions with historical trend analysis.
+                 </p>
 
                 <h3 className="text-xl font-semibold mb-4">Key Features:</h3>
                 <ul className="space-y-3 mb-8">

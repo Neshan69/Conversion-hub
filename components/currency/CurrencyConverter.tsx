@@ -359,12 +359,12 @@ export function CurrencyConverter({
         )}
 
         {/* Offline warning */}
-        {!onlineStatus && (
-          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-            <WifiOff className="w-4 h-4 inline mr-2" />
-            You're offline. Showing cached rates.
-          </div>
-        )}
+         {!onlineStatus && (
+           <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+             <WifiOff className="w-4 h-4 inline mr-2" />
+             You&apos;re offline. Showing cached rates.
+           </div>
+         )}
 
         {/* Last updated */}
         {lastUpdated && !loading && (
@@ -403,11 +403,11 @@ export function CurrencyConverter({
         </motion.div>
       )}
 
-      {compact && (
-        <div className="mt-2 text-center text-sm text-muted-foreground">
-          Click "Details" for historical data and trends
-        </div>
-      )}
+       {compact && (
+         <div className="mt-2 text-center text-sm text-muted-foreground">
+           Click &quot;Details&quot; for historical data and trends
+         </div>
+       )}
     </div>
   );
 }
