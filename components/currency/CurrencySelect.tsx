@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, Star, Clock } from "lucide-react";
+import { Search, ChevronDown, Star } from "lucide-react";
 import { searchCurrencies, getPopularCurrencies, Currency, getCurrencyByCode } from "@/types/currency";
 import { getRecentCurrencies, getFavoriteCurrencies, addRecentCurrency } from "@/lib/currency-utils";
 
@@ -218,6 +218,11 @@ export function CurrencySelect({
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
+
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <div ref={containerRef} className={`relative ${className}`} onKeyDown={handleKeyDown}>
