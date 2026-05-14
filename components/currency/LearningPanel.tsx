@@ -8,8 +8,7 @@ import {
   getCurrencyTrivia, 
   getLearningTip, 
   getFunFact, 
-  saveComment, 
-  JokeComment 
+  saveComment
 } from "@/lib/ai-jokes";
 import { getCurrencyByCode } from "@/types/currency";
 
@@ -99,7 +98,7 @@ export function LearningPanel({
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as "joke" | "trivia" | "tip" | "fact")}
               className={`
                 px-3 py-2 rounded-lg text-sm font-medium transition-all flex flex-col items-center gap-1
                 ${activeTab === tab.id 
