@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
+import { LearningPanel } from "@/components/currency/LearningPanel";
 import { getCurrencyByCode } from "@/types/currency";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -156,15 +157,30 @@ export default async function CurrencyPairPage({ params, searchParams }: PagePro
             </p>
           </motion.div>
 
-          <CurrencyConverter
-            initialFrom={upperFrom}
-            initialTo={upperTo}
-            initialAmount={initialAmount}
-            showCharts={true}
-            showHistorical={true}
-          />
-        </div>
-      </section>
+<CurrencyConverter
+             initialFrom={upperFrom}
+             initialTo={upperTo}
+             initialAmount={initialAmount}
+             showCharts={true}
+             showHistorical={true}
+           />
+
+           {/* Learning Panel */}
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.3 }}
+             className="mt-8"
+           >
+             <LearningPanel 
+               fromCurrency={upperFrom}
+               toCurrency={upperTo}
+               amount={initialAmount}
+               convertedAmount={null}
+             />
+           </motion.div>
+         </div>
+       </section>
 
       {/* Info Section */}
       <section className="py-12 md:py-20">

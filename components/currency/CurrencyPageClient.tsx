@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
+import { LearningPanel } from "@/components/currency/LearningPanel";
 import { Globe, TrendingUp, Shield, Clock, BarChart3 } from "lucide-react";
 
 export function CurrencyPageClient() {
@@ -89,16 +90,31 @@ export function CurrencyPageClient() {
             </div>
           </motion.div>
 
-          {/* Main Converter */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <CurrencyConverter showCharts={true} showHistorical={true} />
-          </motion.div>
-        </div>
-      </section>
+{/* Main Converter */}
+           <motion.div
+             initial={{ opacity: 0, y: 30 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.2 }}
+           >
+             <CurrencyConverter showCharts={true} showHistorical={true} />
+           </motion.div>
+
+           {/* Learning Panel */}
+           <motion.div
+             initial={{ opacity: 0, y: 30 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.3 }}
+             className="mt-8"
+           >
+             <LearningPanel 
+               fromCurrency="USD"
+               toCurrency="EUR"
+               amount="1"
+               convertedAmount="0.92"
+             />
+           </motion.div>
+         </div>
+       </section>
 
       {/* Features Grid */}
       <section className="py-12 md:py-20">
