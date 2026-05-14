@@ -5,18 +5,17 @@ import { motion } from "framer-motion";
 import { CurrencySelect } from "@/components/currency/CurrencySelect";
 import {
   useLiveRates,
-  useCurrencyConverter,
-  useHistoricalRates,
   formatCurrency,
   getExchangeRate,
   addRecentCurrency,
   getFavoriteCurrencies,
-  toggleFavoriteCurrency
+  toggleFavoriteCurrency,
+  useHistoricalRates
 } from "@/lib/currency-utils";
-import { RefreshCw, Copy, Star, Share2, TrendingUp, Clock, BarChart3, WifiOff } from "lucide-react";
+import { RefreshCw, Copy, Star, Share2, TrendingUp, Clock, BarChart3, WifiOff, ArrowUpDown } from "lucide-react";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { getCurrencyByCode } from "@/types/currency";
-import { isOnline } from "@/lib/currency-api";
+import { isOnline as checkOnline } from "@/lib/currency-api";
 
 interface CurrencyConverterProps {
   initialFrom?: string;
@@ -35,18 +34,20 @@ export function CurrencyConverter({
   showHistorical = true,
   compact = false,
 }: CurrencyConverterProps) {
-  // Auto-detect local currency
-  const [baseFrom] = useState(() => initialFrom || detectLocalCurrency());
-  const [baseTo] = useState(() => initialTo || "USD");
+  // State for inputs - managed locally for reliable updates
+  const [amount, setAmount] = useState(initialAmount);
+  const [fromCurrency, setFromCurrency] = useState(() => initialFrom || detectLocalCurrency());
+  const [toCurrency, setToCurrency] = useState(() => initialTo || "USD");
 
-  // Fetch live rates
-  const { rates, loading, error, refresh, isStale, lastUpdated, isOnline: online } = useLiveRates(baseFrom);
+  // Fetch live rates for base currency
+  const { rates, loading, error, refresh, isStale, lastUpdated } = useLiveRates(fromCurrency);
 
-  // Track online status
-  const [onlineStatus, setOnlineStatus] = useState(online);
+  // State for online status
+  const [onlineStatus, setOnlineStatus] = useState(true);
   
   useEffect(() => {
-    const updateOnlineStatus = () => setOnlineStatus(isOnline());
+    const updateOnlineStatus = () => setOnlineStatus(checkOnline());
+    updateOnlineStatus();
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
     return () => {
@@ -55,33 +56,27 @@ export function CurrencyConverter({
     };
   }, []);
 
-  // Converter state
-  const {
-    amount,
-    setAmount,
-    fromCurrency,
-    toCurrency,
-    setFrom,
-    setTo,
-    convertedAmount,
-    swapCurrencies,
-    numericAmount,
-  } = useCurrencyConverter(baseFrom, rates, initialTo);
+  // Calculate conversion
+  const numericAmount = useMemo(() => {
+    const parsed = parseFloat(amount);
+    return isNaN(parsed) ? 0 : parsed;
+  }, [amount]);
 
-  // Initialize from props
-  useEffect(() => {
-    if (initialFrom) setFrom(initialFrom);
-    if (initialTo) setTo(initialTo);
-    if (initialAmount) setAmount(initialAmount);
-  }, []);
-
-  // Add to recent when currency pair changes
-  useEffect(() => {
-    if (fromCurrency && toCurrency) {
-      addRecentCurrency(fromCurrency);
-      addRecentCurrency(toCurrency);
+  const convertedAmount = useMemo(() => {
+    if (!rates || !fromCurrency || !toCurrency || numericAmount === 0) {
+      return null;
     }
-  }, [fromCurrency, toCurrency]);
+    try {
+      const fromRate = rates.rates[fromCurrency];
+      const toRate = rates.rates[toCurrency];
+      if (!fromRate || !toRate) return null;
+      
+      const baseAmount = numericAmount / fromRate;
+      return baseAmount * toRate;
+    } catch {
+      return null;
+    }
+  }, [rates, numericAmount, fromCurrency, toCurrency]);
 
   // Get exchange rate for display
   const rate = useMemo(() => {
@@ -101,54 +96,76 @@ export function CurrencyConverter({
   );
 
   // Formatting
-   const convertedFormatted = useMemo(() => {
-    if (convertedAmount === null) return "";
-    return formatCurrency(convertedAmount, toCurrency);
+  const convertedFormatted = useMemo(() => {
+    if (convertedAmount === null) return "—";
+    const formatted = formatCurrency(convertedAmount, toCurrency);
+    return formatted;
   }, [convertedAmount, toCurrency]);
 
   const rateFormatted = useMemo(() => {
-    if (!rate) return "";
+    if (!rate) return "—";
     return formatCurrency(rate, toCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
   }, [rate, toCurrency]);
 
-  // Format last updated time
+  const inverseRate = useMemo(() => {
+    if (!rate || rate === 0) return null;
+    return 1 / rate;
+  }, [rate]);
+
+  const inverseRateFormatted = useMemo(() => {
+    if (!inverseRate) return "—";
+    return formatCurrency(inverseRate, fromCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
+  }, [inverseRate, fromCurrency]);
+
   const lastUpdatedFormatted = useMemo(() => {
     if (!lastUpdated) return "";
     return lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, [lastUpdated]);
 
-  // Actions
+  // Track recent currencies
+  useEffect(() => {
+    if (fromCurrency && toCurrency) {
+      addRecentCurrency(fromCurrency);
+      addRecentCurrency(toCurrency);
+    }
+  }, [fromCurrency, toCurrency]);
+
+  // Swap currencies
+  const handleSwap = useCallback(() => {
+    const temp = fromCurrency;
+    setFromCurrency(toCurrency);
+    setToCurrency(temp);
+  }, [fromCurrency, toCurrency]);
+
+  // Copy to clipboard
   const handleCopy = useCallback(async () => {
+    if (convertedAmount === null) return;
     const text = `${amount} ${fromCurrency} = ${convertedFormatted}`;
     await navigator.clipboard.writeText(text);
-  }, [amount, fromCurrency, convertedFormatted]);
+  }, [amount, fromCurrency, convertedFormatted, convertedAmount]);
 
+  // Share
   const handleShare = useCallback(async () => {
-    const url = `${window.location.origin}/currency/${fromCurrency}-to-${toCurrency}?amount=${amount}`;
+    if (convertedAmount === null) return;
+    const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}?amount=${amount}`;
     await navigator.share?.({
       title: `Convert ${fromCurrency} to ${toCurrency}`,
       text: `${amount} ${fromCurrency} = ${convertedFormatted}`,
       url,
     });
-  }, [amount, fromCurrency, toCurrency, convertedFormatted]);
-
-  const handleSwap = useCallback(() => {
-    swapCurrencies();
-  }, [swapCurrencies]);
+  }, [amount, fromCurrency, toCurrency, convertedFormatted, convertedAmount]);
 
   // Favorites
-  const [favorites, setFavorites] = useState(() => getFavoriteCurrencies());
+  const [favorites] = useState(() => getFavoriteCurrencies());
   const isFromFavorite = favorites.includes(fromCurrency);
   const isToFavorite = favorites.includes(toCurrency);
 
   const toggleFromFavorite = useCallback(() => {
-    const newFav = toggleFavoriteCurrency(fromCurrency);
-    setFavorites(getFavoriteCurrencies());
+    toggleFavoriteCurrency(fromCurrency);
   }, [fromCurrency]);
 
   const toggleToFavorite = useCallback(() => {
-    const newFav = toggleFavoriteCurrency(toCurrency);
-    setFavorites(getFavoriteCurrencies());
+    toggleFavoriteCurrency(toCurrency);
   }, [toCurrency]);
 
   // Loading state
@@ -179,15 +196,16 @@ export function CurrencyConverter({
     );
   }
 
+  const fromInfo = getCurrencyByCode(fromCurrency);
+  const toInfo = getCurrencyByCode(toCurrency);
+
   return (
     <div className={`currency-converter ${compact ? "compact" : ""}`}>
-      {/* Converter Main Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-8 shadow-lg"
       >
-        {/* Amount Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-muted-foreground mb-2">
             Amount
@@ -200,13 +218,10 @@ export function CurrencyConverter({
             className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border text-2xl font-semibold focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             min="0"
             step="any"
-            autoFocus
           />
         </div>
 
-        {/* Currency Selectors Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* From */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               From
@@ -214,7 +229,7 @@ export function CurrencyConverter({
             <div className="relative">
               <CurrencySelect
                 value={fromCurrency}
-                onChange={setFrom}
+                onChange={setFromCurrency}
                 showRecent={true}
                 showFavorites={true}
                 showPopular={true}
@@ -231,7 +246,6 @@ export function CurrencyConverter({
             </div>
           </div>
 
-          {/* Swap Button */}
           <div className="flex items-end">
             <button
               onClick={handleSwap}
@@ -240,14 +254,11 @@ export function CurrencyConverter({
             >
               <div className="flex items-center justify-center gap-2">
                 <span className="text-sm font-medium">Swap</span>
-                <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
+                <ArrowUpDown className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" />
               </div>
             </button>
           </div>
 
-          {/* To */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               To
@@ -255,7 +266,7 @@ export function CurrencyConverter({
             <div className="relative">
               <CurrencySelect
                 value={toCurrency}
-                onChange={setTo}
+                onChange={setToCurrency}
                 exclude={[fromCurrency]}
                 showRecent={true}
                 showFavorites={true}
@@ -272,24 +283,8 @@ export function CurrencyConverter({
               )}
             </div>
           </div>
-
-          {/* Favorite toggle */}
-          <div className="flex items-end">
-            <button
-              onClick={toggleToFavorite}
-              className={`w-full py-3 rounded-xl border-2 transition-all ${
-                isToFavorite
-                  ? "bg-amber-500/10 border-amber-500 text-amber-600"
-                  : "bg-background border-border hover:bg-accent/10 hover:border-primary"
-              }`}
-              title={isToFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <Star className={`w-5 h-5 mx-auto ${isToFavorite ? "fill-current" : ""}`} />
-            </button>
-          </div>
         </div>
 
-        {/* Result Display */}
         <motion.div
           key={convertedAmount}
           initial={{ scale: 0.95, opacity: 0 }}
@@ -299,36 +294,49 @@ export function CurrencyConverter({
         >
           <div className="text-center">
             <div className="text-sm text-muted-foreground mb-2">
+              {fromInfo?.flag && <span className="mr-1">{fromInfo.flag}</span>}
               {amount} {fromCurrency} =
             </div>
             <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              {toInfo?.flag && <span className="mr-1">{toInfo.flag}</span>}
               {convertedFormatted}
             </div>
             
-            {/* Exchange rate */}
             {rate && (
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
-                <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                <span>
-                  1 {fromCurrency} = {rateFormatted} {toCurrency}
-                </span>
+              <div className="mt-4 space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                  <span>
+                    1 {fromCurrency} = {rateFormatted} {toCurrency}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  1 {toCurrency} = {inverseRateFormatted} {fromCurrency}
+                </div>
+              </div>
+            )}
+            
+            {lastUpdated && (
+              <div className="mt-3 text-xs text-muted-foreground">
+                Last updated: {lastUpdatedFormatted}
               </div>
             )}
           </div>
         </motion.div>
 
-        {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button
             onClick={handleCopy}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors"
+            disabled={convertedAmount === null}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
           >
             <Copy className="w-4 h-4" />
             Copy
           </button>
           <button
             onClick={handleShare}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors"
+            disabled={convertedAmount === null}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
           >
             <Share2 className="w-4 h-4" />
             Share
@@ -342,7 +350,7 @@ export function CurrencyConverter({
             Refresh
           </button>
           <button
-            onClick={() => window.location.href = `/currency/${fromCurrency}-to-${toCurrency}`}
+            onClick={() => window.location.href = `/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}`}
             className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors"
           >
             <BarChart3 className="w-4 h-4" />
@@ -350,7 +358,6 @@ export function CurrencyConverter({
           </button>
         </div>
 
-        {/* Stale warning */}
         {isStale && !loading && (
           <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm">
             <Clock className="w-4 h-4 inline mr-2" />
@@ -358,23 +365,14 @@ export function CurrencyConverter({
           </div>
         )}
 
-        {/* Offline warning */}
-         {!onlineStatus && (
-           <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-             <WifiOff className="w-4 h-4 inline mr-2" />
-             You&apos;re offline. Showing cached rates.
-           </div>
-         )}
-
-        {/* Last updated */}
-        {lastUpdated && !loading && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Last updated: {lastUpdatedFormatted}
+        {!onlineStatus && (
+          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+            <WifiOff className="w-4 h-4 inline mr-2" />
+            You&apos;re offline. Showing cached rates.
           </div>
         )}
       </motion.div>
 
-      {/* Historical Chart */}
       {showHistorical && !compact && historicalData.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -402,19 +400,12 @@ export function CurrencyConverter({
           )}
         </motion.div>
       )}
-
-       {compact && (
-         <div className="mt-2 text-center text-sm text-muted-foreground">
-           Click &quot;Details&quot; for historical data and trends
-         </div>
-       )}
     </div>
   );
 }
 
 // Helper: Detect user's local currency
 function detectLocalCurrency(): string {
-  // Check if user has manually set preference (client-only)
   if (typeof window !== "undefined") {
     const saved = localStorage.getItem("conversion-hub-preferred-currency");
     if (saved && getCurrencyByCode(saved)) {
@@ -422,7 +413,6 @@ function detectLocalCurrency(): string {
     }
   }
 
-  // Try to detect from browser language (client-only)
   if (typeof navigator !== "undefined") {
     const lang = navigator.language || "en-US";
     const country = lang.split("-")[1]?.toUpperCase();
