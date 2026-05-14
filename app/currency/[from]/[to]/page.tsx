@@ -5,6 +5,9 @@ import { LearningPanel } from "@/components/currency/LearningPanel";
 import { getCurrencyByCode } from "@/types/currency";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { SparklineChart } from "@/components/charts/SparklineChart";
+import { useHistoricalRates } from "@/lib/currency-utils";
+import { formatCurrency } from "@/lib/currency-api";
 
 interface PageProps {
   params: {
@@ -19,8 +22,7 @@ interface PageProps {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { from, to } = params;
-  
-  // Validate params
+
   if (typeof from !== 'string' || typeof to !== 'string') {
     return {
       title: "Currency Converter Not Found",
@@ -34,12 +36,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!fromCurrency || !toCurrency) {
     return {
       title: "Currency Not Found | Conversion Hub",
-      description: "The requested currency conversion is not available.",
+      description: "The requested currency is not available.",
     };
   }
 
-   const title = `${from} to ${to} Live Currency Converter (${fromCurrency.name} → ${toCurrency.name}) | Conversion Hub`;
-   const description = `Convert ${from} to ${to} using live exchange rates. ${fromCurrency.name} to ${toCurrency.name} converter with historical data, charts, and accurate rates. Free and instant.`;
+  const title = `${from} to ${to} Live Currency Converter (${fromCurrency.name} → ${toCurrency.name}) | Conversion Hub`;
+  const description = `Convert ${from} to ${to} using live exchange rates. ${fromCurrency.name} to ${toCurrency.name} converter with historical data, AI insights, and accurate rates. Free and instant.`;
 
   return {
     title,
@@ -52,6 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       "forex",
       "live rates",
       `convert ${from} to ${to}`,
+      `${fromCurrency.code} ${toCurrency.code} forecast`,
     ].join(", "),
     openGraph: {
       title,
@@ -60,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       images: [
         {
-          url: `/og-image?from=${from}&to=${to}&type=currency`,
+          url: `/api/og?from=${from}&to=${to}&type=currency`,
           width: 1200,
           height: 630,
           alt: `${from} to ${to} Currency Converter`,
@@ -73,6 +76,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: {
       index: true,
       follow: true,
+    },
+    other: {
+      "citation_title": `${fromCurrency.name} to ${toCurrency.name} Conversion`,
+      "citation_author": "Conversion Hub",
     },
   };
 }
@@ -97,7 +104,6 @@ export async function generateStaticParams() {
 export default async function CurrencyPairPage({ params, searchParams }: PageProps) {
   const { from, to } = params;
 
-  // Ensure params are strings
   if (typeof from !== 'string' || typeof to !== 'string') {
     notFound();
   }
@@ -105,7 +111,6 @@ export default async function CurrencyPairPage({ params, searchParams }: PagePro
   const upperFrom = from.toUpperCase();
   const upperTo = to.toUpperCase();
 
-  // Validate currencies exist
   const fromCurrency = getCurrencyByCode(upperFrom);
   const toCurrency = getCurrencyByCode(upperTo);
 
@@ -118,21 +123,28 @@ export default async function CurrencyPairPage({ params, searchParams }: PagePro
   return (
     <div className="min-h-screen">
       {/* Breadcrumb */}
-      <nav className="bg-muted/30 border-b border-border">
+      <nav className="bg-muted/30 border-b border-border" aria-label="Breadcrumb">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
-           <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-             <li>
-               <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-             </li>
-             <li>/</li>
-             <li>
-               <Link href="/currency" className="hover:text-primary transition-colors">Currency</Link>
-             </li>
-             <li>/</li>
-             <li className="font-medium text-foreground">
-               {upperFrom} → {upperTo}
-             </li>
-           </ol>
+          <ol className="flex items-center gap-2 text-sm text-muted-foreground" itemScope itemType="https://schema.org/BreadcrumbList">
+            <li itemProp="itemListElement" itemscope itemType="https://schema.org/ListItem">
+              <Link href="/" className="hover:text-primary transition-colors" itemProp="item">
+                <span itemProp="name">Home</span>
+              </Link>
+              <meta itemProp="position" content="1" />
+            </li>
+            <li>/</li>
+            <li itemProp="itemListElement" itemscope itemType="https://schema.org/ListItem">
+              <Link href="/currency" className="hover:text-primary transition-colors" itemProp="item">
+                <span itemProp="name">Currency</span>
+              </Link>
+              <meta itemProp="position" content="2" />
+            </li>
+            <li>/</li>
+            <li className="font-medium text-foreground" itemProp="itemListElement" itemscope itemType="https://schema.org/ListItem">
+              <span itemProp="name">{upperFrom} → {upperTo}</span>
+              <meta itemProp="position" content="3" />
+            </li>
+          </ol>
         </div>
       </nav>
 
@@ -157,49 +169,72 @@ export default async function CurrencyPairPage({ params, searchParams }: PagePro
             </p>
           </motion.div>
 
-<CurrencyConverter
-             initialFrom={upperFrom}
-             initialTo={upperTo}
-             initialAmount={initialAmount}
-             showCharts={true}
-             showHistorical={true}
-           />
+          <CurrencyConverter
+            initialFrom={upperFrom}
+            initialTo={upperTo}
+            initialAmount={initialAmount}
+            showCharts={true}
+            showHistorical={true}
+          />
 
-           {/* Learning Panel */}
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.3 }}
-             className="mt-8"
-           >
-             <LearningPanel 
-               fromCurrency={upperFrom}
-               toCurrency={upperTo}
-               amount={initialAmount}
-               convertedAmount={null}
-             />
-           </motion.div>
-         </div>
-       </section>
+          {/* AI-Powered Learning Panel */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8"
+          >
+            <LearningPanel
+              fromCurrency={upperFrom}
+              toCurrency={upperTo}
+              amount={initialAmount}
+            />
+          </motion.div>
+        </div>
+      </section>
 
-      {/* Info Section */}
-      <section className="py-12 md:py-20">
+      {/* Historical Comparison Info */}
+      <section className="py-12 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">About {fromCurrency.code} to {toCurrency.code} Conversion</h2>
-            <div className="prose prose-slate max-w-none">
-              <p>
-                Convert {fromCurrency.name} ({fromCurrency.code}) to {toCurrency.name} ({toCurrency.code}) 
-                with live forex rates. Our currency converter uses real-time data from trusted financial APIs 
-                to provide accurate exchange rates for {fromCurrency.country} and {toCurrency.country}.
-              </p>
-              <ul>
-                <li><strong>Live Rates:</strong> Updated every 15 minutes</li>
-                <li><strong>Precision:</strong> Up to {fromCurrency.decimalPlaces} decimal places for {fromCurrency.code}, {toCurrency.decimalPlaces} for {toCurrency.code}</li>
-                <li><strong>Historical Data:</strong> 30-day trend chart included</li>
-                <li><strong>Offline Support:</strong> Last known rates cached locally</li>
-              </ul>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-2xl md:text-3xl font-bold mb-6">
+                About {fromCurrency.code} to {toCurrency.code} Conversion
+              </h2>
+              <div className="prose prose-slate dark:prose-invert max-w-none">
+                <p>
+                  Convert {fromCurrency.name} ({fromCurrency.code}) to {toCurrency.name} ({toCurrency.code})
+                  with live forex rates. Our currency converter uses real-time data from trusted financial APIs
+                  to provide accurate exchange rates for {fromCurrency.country} and {toCurrency.country}.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span><strong>Live Rates:</strong> Updated every 15 minutes</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span><strong>Precision:</strong> Up to {fromCurrency.decimalPlaces} decimal places for {fromCurrency.code}, {toCurrency.decimalPlaces} for {toCurrency.code}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span><strong>Historical Data:</strong> 30-day trend chart included</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span><strong>AI Insights:</strong> Understand why exchange rates change</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span><strong>Offline Support:</strong> Last known rates cached locally</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

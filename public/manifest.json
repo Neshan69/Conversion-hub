@@ -1,0 +1,22 @@
+{
+  "short_name": "Conversion Hub",
+  "name": "Conversion Hub - All-in-One Converter",
+  "description": "Free currency, unit, and data converters with AI-powered insights",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

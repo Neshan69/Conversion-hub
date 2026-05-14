@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input, Select, Button } from "@/components/ui/components";
 import { ConversionEngine } from "@/lib/converter-engine";
 import { getCategoryById } from "@/data/conversions";
 import { copyToClipboard, addRecentConversion } from "@/lib/utils";
-import { Check, Copy, ArrowRightLeft } from "lucide-react";
+import { Check, Copy, ArrowRightLeft, ChevronUp, ChevronDown } from "lucide-react";
 
 interface ConverterProps {
   categoryId?: string;
@@ -20,17 +20,17 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
   const [fromUnit, setFromUnit] = useState<string>(initialFromUnit || "");
   const [toUnit, setToUnit] = useState<string>(initialToUnit || "");
   const [copied, setCopied] = useState(false);
+  const [showFormula, setShowFormula] = useState(false);
+  const fromInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize units when category changes
   useEffect(() => {
     if (category && !fromUnit) {
       const unitKeys = Object.keys(category.units);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFromUnit(unitKeys[0]);
       setToUnit(unitKeys[1] || unitKeys[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category]);
+  }, [category, fromUnit]);
 
   // Create conversion engine
   const engine = useMemo(() => {
@@ -38,12 +38,12 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
     return new ConversionEngine(category.units);
   }, [category]);
 
-  // Perform conversion
+  // Perform conversion - immediate, no debounce needed for calculations
   const conversionResult = useMemo(() => {
     if (!engine || !fromValue || !fromUnit || !toUnit) return null;
 
     const value = parseFloat(fromValue);
-    if (isNaN(value)) return null;
+    if (isNaN(value) || !isFinite(value)) return null;
 
     try {
       return engine.convert(value, fromUnit, toUnit);
@@ -69,12 +69,15 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
   const handleSwap = useCallback(() => {
     setFromUnit(toUnit);
     setToUnit(fromUnit);
+    if (fromInputRef.current) {
+      fromInputRef.current.focus();
+    }
   }, [fromUnit, toUnit]);
 
   // Handle copy result
   const handleCopy = useCallback(async () => {
     if (!conversionResult) return;
-    
+
     const success = await copyToClipboard(conversionResult.formatted);
     if (success) {
       setCopied(true);
@@ -82,11 +85,10 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
     }
   }, [conversionResult]);
 
-  // Handle input change
+  // Handle input change - allow immediate typing
   const handleFromValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Allow empty string or valid number
-    if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+    if (value === "" || value === "-" || value === "." || /^-?\d*\.?\d*$/.test(value)) {
       setFromValue(value);
     }
   }, []);
@@ -110,106 +112,115 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="glass-dark rounded-3xl p-6 md:p-8 shadow-xl border border-white/10">
+      <div className="glass-dark rounded-2xl p-6 md:p-8 shadow-xl border border-white/[0.05]">
         {/* Header with category info */}
         <div className="flex items-center gap-4 mb-8">
-          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl shadow-lg`}>
-            {category.icon}
+          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
+            <span className="text-xl">{category.icon}</span>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">{category.name}</h2>
-            <p className="text-muted-foreground">{category.description}</p>
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold text-foreground truncate">{category.name} Converter</h2>
+            <p className="text-muted-foreground text-sm truncate">{category.description}</p>
           </div>
         </div>
 
         {/* Converter Panel */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* From input */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">From</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground" htmlFor="from-value">
+              From
+            </label>
             <div className="flex gap-3">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <Input
+                  id="from-value"
                   type="text"
                   inputMode="decimal"
                   value={fromValue}
                   onChange={handleFromValueChange}
                   placeholder="Enter value"
-                  className="h-14 text-lg"
+                  className="h-12 text-lg"
+                  ref={fromInputRef}
                 />
               </div>
-              <div className="w-48">
+              <div className="w-40 flex-shrink-0">
                 <Select
                   value={fromUnit}
                   onChange={(e) => setFromUnit(e.target.value)}
                   options={unitOptions}
-                  className="h-14"
+                  className="h-12"
                 />
               </div>
             </div>
           </div>
 
           {/* Swap button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center -my-1">
             <motion.button
               onClick={handleSwap}
-              className="relative z-10 p-3 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-lg hover:shadow-xl transition-shadow duration-300"
-              whileHover={{ scale: 1.1, rotate: 180 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.3 }}
+              className="relative z-10 p-2.5 rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-lg hover:shadow-xl transition-shadow duration-200"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
               aria-label="Swap units"
             >
-              <ArrowRightLeft className="w-5 h-5" />
+              <ArrowRightLeft className="w-4 h-4" />
             </motion.button>
           </div>
 
           {/* To output */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">To</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              To
+            </label>
             <div className="flex gap-3">
-              <div className="flex-1 relative">
+              <div className="flex-1 min-w-0 relative">
                 <Input
                   type="text"
                   value={conversionResult?.formatted || ""}
                   readOnly
-                  className="h-14 text-lg bg-muted/50 font-mono"
+                  className="h-12 text-lg bg-muted/50 font-mono cursor-default"
+                  aria-label="Converted result"
                 />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 p-0"
-                >
-                  <AnimatePresence mode="wait">
-                    {copied ? (
-                      <motion.div
-                        key="check"
-                        initial={{ scale: 0, rotate: -90 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        exit={{ scale: 0, rotate: 90 }}
-                        className="text-green-500"
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.div
+                      key="check"
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 90 }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                    >
+                      <Check className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="copy"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopy}
+                        disabled={!conversionResult}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Copy result"
                       >
-                        <Check className="w-4 h-4" />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="copy"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Button>
+                        <Copy className="w-3.5 h-3.5" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              <div className="w-48">
+              <div className="w-40 flex-shrink-0">
                 <Select
                   value={toUnit}
                   onChange={(e) => setToUnit(e.target.value)}
                   options={unitOptions}
-                  className="h-14"
+                  className="h-12"
                 />
               </div>
             </div>
@@ -219,13 +230,31 @@ export function Converter({ categoryId = "length", initialFromUnit, initialToUni
         {/* Conversion formula hint */}
         {conversionResult && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-6 pt-6 border-t border-border"
+            className="mt-5 pt-5 border-t border-border/50"
           >
-            <p className="text-sm text-muted-foreground text-center">
-              {fromValue} {category.units[fromUnit].symbol} = {conversionResult.formatted} {category.units[toUnit].symbol}
-            </p>
+            <button
+              onClick={() => setShowFormula(!showFormula)}
+              className="flex items-center justify-between w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>
+                {fromValue} {category.units[fromUnit]?.symbol} = {conversionResult.formatted} {category.units[toUnit]?.symbol}
+              </span>
+              {showFormula ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            <AnimatePresence>
+              {showFormula && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-3 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 font-mono"
+                >
+                  Formula: ({fromValue} × {category.units[fromUnit]?.factor}) / {category.units[toUnit]?.factor} = {conversionResult.value}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </div>

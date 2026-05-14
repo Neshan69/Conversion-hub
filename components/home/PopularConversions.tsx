@@ -21,21 +21,21 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: 0.04,
     },
   },
 };
 
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.4,
-      },
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
     },
-  };
+  },
+};
 
 export function PopularConversions() {
   return (
@@ -43,10 +43,10 @@ export function PopularConversions() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          className="text-center mb-16"
+          viewport={{ once: true, margin: "-80px" }}
+          className="text-center mb-14"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
             Popular Conversions
@@ -61,8 +61,8 @@ export function PopularConversions() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
         >
           {popularConversions.map((conv, index) => {
             const category = getCategoryById(conv.categoryId);
@@ -75,41 +75,34 @@ export function PopularConversions() {
               <motion.div key={index} variants={itemVariants}>
                 <Link
                   href={`/convert/${conv.categoryId}?from=${conv.fromUnit}&to=${conv.toUnit}`}
-                  className="group flex flex-col h-full p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+                  className="group flex flex-col h-full p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5"
+                  prefetch={true}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">{category.icon}</span>
-                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xl">{category.icon}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                       {category.name}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between flex-1">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {fromUnit.symbol}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {fromUnit.name}
-                      </p>
+                      <p className="text-sm font-medium text-foreground">{fromUnit.symbol}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{fromUnit.name}</p>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3">
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div className="flex items-center gap-1 px-2">
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
 
                     <div className="flex-1 text-right">
-                      <p className="text-sm font-medium text-foreground">
-                        {toUnit.symbol}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {toUnit.name}
-                      </p>
+                      <p className="text-sm font-medium text-foreground">{toUnit.symbol}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{toUnit.name}</p>
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-border/50">
-                    <p className="text-xs text-primary font-medium group-hover:underline">
+                  <div className="mt-2 pt-2 border-t border-border/40">
+                    <p className="text-[11px] text-primary font-medium group-hover:underline">
                       {conv.label} →
                     </p>
                   </div>

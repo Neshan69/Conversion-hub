@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, Star } from "lucide-react";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { searchCurrencies, getPopularCurrencies, Currency, getCurrencyByCode } from "@/types/currency";
 import { getRecentCurrencies, getFavoriteCurrencies, addRecentCurrency } from "@/lib/currency-utils";
 
@@ -10,7 +10,7 @@ interface CurrencySelectProps {
   value: string;
   onChange: (code: string) => void;
   label?: string;
-  exclude?: string[]; // Exclude certain currencies (e.g., same as value)
+  exclude?: string[];
   showPopular?: boolean;
   showRecent?: boolean;
   showFavorites?: boolean;
@@ -36,7 +36,7 @@ export function CurrencySelect({
   const listRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedCurrency = useMemo(() => 
+  const selectedCurrency = useMemo(() =>
     searchCurrencies(value)[0] || null, [value]
   );
 
@@ -44,7 +44,6 @@ export function CurrencySelect({
     onChange(code);
     setIsOpen(false);
     setQuery("");
-    // Add to recent
     addRecentCurrency(code);
   }, [onChange]);
 
@@ -56,40 +55,32 @@ export function CurrencySelect({
   const handleContainerClick = useCallback(() => {
     if (!isOpen) {
       setIsOpen(true);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [isOpen]);
 
   const clearQuery = useCallback(() => {
     setQuery("");
-    inputRef.current?.focus();
+    requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
-  // Get filtered results
+  // Get filtered results - memoized for performance
   const filteredResults = useMemo(() => {
     let results = searchCurrencies(query);
-    
-    // Exclude specified currencies
     results = results.filter(c => !exclude.includes(c.code));
-    
-    // Remove selected currency
     results = results.filter(c => c.code !== value);
-    
-    // Deduplicate
-    results = results.filter((c, i, arr) => 
+    results = results.filter((c, i, arr) =>
       arr.findIndex(x => x.code === c.code) === i
     );
-    
-    return results.slice(0, 50); // Limit for performance
+    return results.slice(0, 50);
   }, [query, exclude, value]);
 
-  // Build display list with sections
   const recentCodes = showRecent ? getRecentCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
   const favoriteCodes = showFavorites ? getFavoriteCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
   const popularCodes = showPopular ? getPopularCurrencies().filter(c => !exclude.includes(c.code) && c.code !== value) : [];
+
   const resultItems = filteredResults
     .filter(c => {
-      // Exclude already shown currencies
       const shownCodes = [...recentCodes, ...favoriteCodes, ...popularCodes];
       return !shownCodes.includes(c.code);
     });
@@ -103,20 +94,14 @@ export function CurrencySelect({
 
     if (recentCodes.length > 0) {
       const recentItems = recentCodes
-        .map(code => {
-          const currency = getCurrencyByCode(code);
-          return currency || null;
-        })
+        .map(code => getCurrencyByCode(code))
         .filter((item): item is Currency => item !== null);
       sections.push({ type: "recent", label: "Recent", items: recentItems });
     }
 
     if (favoriteCodes.length > 0) {
       const favoriteItems = favoriteCodes
-        .map(code => {
-          const currency = getCurrencyByCode(code);
-          return currency || null;
-        })
+        .map(code => getCurrencyByCode(code))
         .filter((item): item is Currency => item !== null);
       sections.push({ type: "favorites", label: "Favorites", items: favoriteItems });
     }
@@ -127,7 +112,6 @@ export function CurrencySelect({
       sections.push({ type: "popular", label: "Popular", items: popularItems });
     }
 
-    // Always show search results if there's a query or no other sections
     if (query.trim() !== '' || sections.length === 0) {
       sections.push({ type: "results", label: "Results", items: resultItems });
     }
@@ -137,30 +121,23 @@ export function CurrencySelect({
 
   // Combine all items for keyboard navigation
   const allItems = useMemo(() => {
-    const recentItems: Currency[] = recentCodes
-      .map(code => {
-        const currency = getCurrencyByCode(code);
-        return currency || null;
-      })
-      .filter((item): item is Currency => item !== null);
-    
-    const favoriteItems: Currency[] = favoriteCodes
-      .map(code => {
-        const currency = getCurrencyByCode(code);
-        return currency || null;
-      })
-      .filter((item): item is Currency => item !== null);
-    
-    const popularItems: Currency[] = popularCodes
-      .filter((item): item is Currency => item !== null);
-    
-    const resultItemsArray: Currency[] = resultItems
-      .filter((item): item is Currency => item !== null);
-    
-    const combined: Currency[] = [...recentItems, ...favoriteItems, ...popularItems, ...resultItemsArray];
-    return combined.filter((item, index, self) => 
-      index === self.findIndex(t => t.code === item.code)
-    );
+    const items: Currency[] = [];
+    const seen = new Set<string>();
+
+    for (const code of [...recentCodes, ...favoriteCodes, ...popularCodes]) {
+      const currency = getCurrencyByCode(code);
+      if (currency && !seen.has(currency.code)) {
+        items.push(currency);
+        seen.add(currency.code);
+      }
+    }
+    for (const item of resultItems) {
+      if (item && !seen.has(item.code)) {
+        items.push(item);
+        seen.add(item.code);
+      }
+    }
+    return items;
   }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
 
   // Handle keyboard navigation
@@ -177,7 +154,7 @@ export function CurrencySelect({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setHighlightedIndex(prev => 
+        setHighlightedIndex(prev =>
           prev < allItems.length - 1 ? prev + 1 : prev
         );
         break;
@@ -201,8 +178,8 @@ export function CurrencySelect({
           setIsOpen(false);
         }
         break;
-      }
-    }, [isOpen, allItems, highlightedIndex, query, value]);
+    }
+  }, [isOpen, allItems, highlightedIndex, query, value, handleSelect]);
 
   // Scroll highlighted item into view
   useEffect(() => {
@@ -214,15 +191,9 @@ export function CurrencySelect({
     }
   }, [highlightedIndex]);
 
-  // Reset highlighted index when results change
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
-
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   return (
     <div ref={containerRef} className={`relative ${className}`} onKeyDown={handleKeyDown}>
@@ -284,7 +255,7 @@ export function CurrencySelect({
         )}
 
         {/* Dropdown arrow */}
-        <ChevronDown 
+        <ChevronDown
           className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
@@ -293,13 +264,13 @@ export function CurrencySelect({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: -10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+            transition={{ duration: 0.12 }}
             className="absolute z-50 w-full mt-2 bg-background border border-border rounded-xl shadow-xl overflow-hidden"
           >
-            <div ref={listRef} className="max-h-[320px] overflow-y-auto overflow-x-hidden">
+            <div ref={listRef} className="max-h-[320px] overflow-y-auto overflow-x-hidden overscroll-contain">
               {displaySections.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground">
                   <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -309,14 +280,12 @@ export function CurrencySelect({
               ) : (
                 displaySections.map((section, sectionIdx) => (
                   <div key={section.type + sectionIdx}>
-                    {/* Section header */}
                     {section.label && (
-                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30">
+                      <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider bg-muted/30">
                         {section.label}
                       </div>
                     )}
 
-                    {/* Currency items */}
                     {section.items.map((currency, index) => {
                       const globalIndex = allItems.indexOf(currency);
                       const isHighlighted = globalIndex === highlightedIndex;
@@ -337,12 +306,10 @@ export function CurrencySelect({
                                 : "hover:bg-accent/5"
                           }`}
                         >
-                          {/* Flag */}
                           <span className="text-2xl leading-none flex-shrink-0" role="img" aria-label={currency.country}>
                             {currency.flag}
                           </span>
 
-                          {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-sm">
@@ -360,14 +327,12 @@ export function CurrencySelect({
                             </div>
                           </div>
 
-                          {/* Symbol */}
-                          <div className="text-sm text-muted-foreground font-mono">
+                          <div className="text-sm text-muted-foreground font-mono flex-shrink-0">
                             {currency.symbol}
                           </div>
 
-                          {/* Selected checkmark */}
                           {isSelected && (
-                            <div className="w-5 h-5 flex items-center justify-center text-primary">
+                            <div className="w-5 h-5 flex items-center justify-center text-primary flex-shrink-0">
                               ✓
                             </div>
                           )}

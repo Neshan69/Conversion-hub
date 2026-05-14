@@ -1,7 +1,7 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { UnitConverterPage } from "@/components/converter/UnitConverterPage";
 import { getCategoryById, conversionCategories } from "@/data/conversions";
-import { Metadata } from "next";
 
 interface PageProps {
   params: {
@@ -13,19 +13,18 @@ interface PageProps {
   };
 }
 
-// Generate static paths for all categories at build time
+// Generate static paths for all categories
 export async function generateStaticParams() {
   return conversionCategories.map((category) => ({
     category: category.id,
   }));
 }
 
-// Generate dynamic metadata for each category page
+// Generate dynamic metadata for each category
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category: categoryId } = params;
 
   const category = getCategoryById(categoryId);
-
   if (!category) {
     return {
       title: "Converter Not Found",
@@ -41,11 +40,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     keywords: [
       category.name.toLowerCase(),
-      `${category.name} converter`,
-      ...Object.values(category.units).map(u => u.name),
-      ...Object.values(category.units).map(u => u.symbol),
+      `${category.name.toLowerCase()} converter`,
+      ...Object.values(category.units).map(u => u.name.toLowerCase()),
       "online converter",
       "free tool",
+      "unit conversion",
     ].join(", "),
     openGraph: {
       title,
@@ -54,7 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       images: [
         {
-          url: `/og-image?category=${categoryId}`,
+          url: `/api/og?category=${categoryId}`,
           width: 1200,
           height: 630,
           alt: `${category.name} Converter`,
@@ -67,21 +66,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: {
       index: true,
       follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-      },
     },
   };
 }
 
-export default async function UnitCategoryPage({ params, searchParams }: PageProps) {
+export default function CategoryPage({ params, searchParams }: PageProps) {
   const { category: categoryId } = params;
   const { from, to } = searchParams;
 
-  // Find the category
   const category = getCategoryById(categoryId);
-
   if (!category) {
     notFound();
   }

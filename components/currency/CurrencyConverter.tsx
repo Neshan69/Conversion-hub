@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RefreshCw, ArrowUpDown, ChevronUp, ChevronDown, AlertTriangle, WifiOff, Clock, TrendingUp, BarChart3, Copy, Share2 } from "lucide-react";
 import { CurrencySelect } from "@/components/currency/CurrencySelect";
+import { SparklineChart } from "@/components/charts/SparklineChart";
+import { EconomyComparison, PurchasingPowerComparison } from "@/components/currency/EconomyComparison";
+import { LearningPanel } from "@/components/currency/LearningPanel";
 import {
   useLiveRates,
   formatCurrency,
@@ -10,21 +14,12 @@ import {
   addRecentCurrency,
   getFavoriteCurrencies,
   toggleFavoriteCurrency,
-  useHistoricalRates
+  useHistoricalRates,
+  detectLocalCurrency,
 } from "@/lib/currency-utils";
-import { RefreshCw, Copy, Star, Share2, TrendingUp, Clock, BarChart3, WifiOff, ArrowUpDown } from "lucide-react";
-import { SparklineChart } from "@/components/charts/SparklineChart";
 import { getCurrencyByCode } from "@/types/currency";
 import { isOnline as checkOnline } from "@/lib/currency-api";
-
-interface CurrencyConverterProps {
-  initialFrom?: string;
-  initialTo?: string;
-  initialAmount?: string;
-  showCharts?: boolean;
-  showHistorical?: boolean;
-  compact?: boolean;
-}
+import { debounce } from "@/lib/utils";
 
 export function CurrencyConverter({
   initialFrom,
@@ -32,53 +27,63 @@ export function CurrencyConverter({
   initialAmount = "1",
   showCharts = true,
   showHistorical = true,
+  showInsights = false,
   compact = false,
-}: CurrencyConverterProps) {
-  // State for inputs - managed locally for reliable updates
+}: {
+  initialFrom?: string;
+  initialTo?: string;
+  initialAmount?: string;
+  showCharts?: boolean;
+  showHistorical?: boolean;
+  showInsights?: boolean;
+  compact?: boolean;
+}) {
   const [amount, setAmount] = useState(initialAmount);
   const [fromCurrency, setFromCurrency] = useState(() => initialFrom || detectLocalCurrency());
   const [toCurrency, setToCurrency] = useState(() => initialTo || "USD");
 
-  // Fetch live rates for base currency
   const { rates, loading, error, refresh, isStale, lastUpdated } = useLiveRates(fromCurrency);
-
-  // State for online status
   const [onlineStatus, setOnlineStatus] = useState(true);
-  
+  const [isSwapping, setIsSwapping] = useState(false);
+
   useEffect(() => {
     const updateOnlineStatus = () => setOnlineStatus(checkOnline());
     updateOnlineStatus();
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
     return () => {
-      window.removeEventListener('online', updateOnlineStatus);
-      window.removeEventListener('offline', updateOnlineStatus);
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
     };
   }, []);
 
-  // Calculate conversion
+  const handleAmountInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "" || value === "-" || value === "." || /^-?\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+    }
+  }, []);
+
   const numericAmount = useMemo(() => {
     const parsed = parseFloat(amount);
-    return isNaN(parsed) ? 0 : parsed;
+    return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
   }, [amount]);
 
   const convertedAmount = useMemo(() => {
-    if (!rates || !fromCurrency || !toCurrency || numericAmount === 0) {
-      return null;
-    }
+    if (!rates || !fromCurrency || !toCurrency || numericAmount === 0) return null;
     try {
       const fromRate = rates.rates[fromCurrency];
       const toRate = rates.rates[toCurrency];
       if (!fromRate || !toRate) return null;
-      
       const baseAmount = numericAmount / fromRate;
-      return baseAmount * toRate;
+      const result = baseAmount * toRate;
+      if (!isFinite(result)) return null;
+      return result;
     } catch {
       return null;
     }
   }, [rates, numericAmount, fromCurrency, toCurrency]);
 
-  // Get exchange rate for display
   const rate = useMemo(() => {
     if (!rates) return null;
     try {
@@ -88,30 +93,24 @@ export function CurrencyConverter({
     }
   }, [rates, fromCurrency, toCurrency]);
 
-  // Get historical data
-  const { data: historicalData, loading: historicalLoading } = useHistoricalRates(
-    fromCurrency,
-    toCurrency,
-    30
-  );
+  const { data: historicalData, loading: historicalLoading } = useHistoricalRates(fromCurrency, toCurrency, 30);
 
-  // Formatting
   const convertedFormatted = useMemo(() => {
     if (convertedAmount === null) return "—";
-    const formatted = formatCurrency(convertedAmount, toCurrency);
-    return formatted;
+    return formatCurrency(convertedAmount, toCurrency);
   }, [convertedAmount, toCurrency]);
+
+  const amountFormatted = useMemo(() => {
+    if (!amount || isNaN(parseFloat(amount))) return "—";
+    return formatCurrency(numericAmount, fromCurrency);
+  }, [amount, numericAmount, fromCurrency]);
 
   const rateFormatted = useMemo(() => {
     if (!rate) return "—";
     return formatCurrency(rate, toCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
   }, [rate, toCurrency]);
 
-  const inverseRate = useMemo(() => {
-    if (!rate || rate === 0) return null;
-    return 1 / rate;
-  }, [rate]);
-
+  const inverseRate = useMemo(() => (rate ? 1 / rate : null), [rate]);
   const inverseRateFormatted = useMemo(() => {
     if (!inverseRate) return "—";
     return formatCurrency(inverseRate, fromCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
@@ -119,10 +118,9 @@ export function CurrencyConverter({
 
   const lastUpdatedFormatted = useMemo(() => {
     if (!lastUpdated) return "";
-    return lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }, [lastUpdated]);
 
-  // Track recent currencies
   useEffect(() => {
     if (fromCurrency && toCurrency) {
       addRecentCurrency(fromCurrency);
@@ -130,68 +128,71 @@ export function CurrencyConverter({
     }
   }, [fromCurrency, toCurrency]);
 
-  // Swap currencies
   const handleSwap = useCallback(() => {
+    setIsSwapping(true);
     const temp = fromCurrency;
     setFromCurrency(toCurrency);
     setToCurrency(temp);
+    setTimeout(() => setIsSwapping(false), 400);
   }, [fromCurrency, toCurrency]);
 
-  // Copy to clipboard
   const handleCopy = useCallback(async () => {
     if (convertedAmount === null) return;
     const text = `${amount} ${fromCurrency} = ${convertedFormatted}`;
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
   }, [amount, fromCurrency, convertedFormatted, convertedAmount]);
 
-  // Share
   const handleShare = useCallback(async () => {
     if (convertedAmount === null) return;
     const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}?amount=${amount}`;
-    await navigator.share?.({
-      title: `Convert ${fromCurrency} to ${toCurrency}`,
-      text: `${amount} ${fromCurrency} = ${convertedFormatted}`,
-      url,
-    });
-  }, [amount, fromCurrency, toCurrency, convertedFormatted, convertedAmount]);
+    const shareData = { title: `Convert ${fromCurrency} to ${toCurrency}`, text: `${amount} ${fromCurrency} = ${convertedFormatted}`, url };
+    if (navigator.canShare?.(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      await handleCopy();
+    }
+  }, [amount, fromCurrency, toCurrency, convertedFormatted, convertedAmount, handleCopy]);
 
-  // Favorites
   const [favorites] = useState(() => getFavoriteCurrencies());
   const isFromFavorite = favorites.includes(fromCurrency);
   const isToFavorite = favorites.includes(toCurrency);
+  const toggleFromFavorite = useCallback(() => toggleFavoriteCurrency(fromCurrency), [fromCurrency]);
+  const toggleToFavorite = useCallback(() => toggleFavoriteCurrency(toCurrency), [toCurrency]);
 
-  const toggleFromFavorite = useCallback(() => {
-    toggleFavoriteCurrency(fromCurrency);
-  }, [fromCurrency]);
+  // Refresh polling — check every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (checkOnline()) refresh(true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [refresh]);
 
-  const toggleToFavorite = useCallback(() => {
-    toggleFavoriteCurrency(toCurrency);
-  }, [toCurrency]);
-
-  // Loading state
   if (loading && !rates) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full mx-auto mb-4" />
           <p className="text-muted-foreground">Loading exchange rates...</p>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error && !rates) {
     return (
-      <div className="p-6 rounded-xl border border-border bg-destructive/5 text-destructive">
+      <div className="p-6 rounded-xl border border-destructive/20 bg-destructive/5 text-destructive">
         <p className="font-medium mb-2">Unable to load exchange rates</p>
         <p className="text-sm opacity-80 mb-4">{error}</p>
-        <button
-          onClick={() => refresh()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          Retry
-        </button>
+        <button onClick={() => refresh()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">Retry</button>
       </div>
     );
   }
@@ -201,232 +202,99 @@ export function CurrencyConverter({
 
   return (
     <div className={`currency-converter ${compact ? "compact" : ""}`}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-8 shadow-lg"
-      >
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-muted-foreground mb-2">
-            Amount
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount"
-            className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border text-2xl font-semibold focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            min="0"
-            step="any"
-          />
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-8 shadow-lg">
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-muted-foreground mb-2" htmlFor="amount-input">Amount</label>
+          <input id="amount-input" type="text" inputMode="decimal" value={amount} onChange={handleAmountInput} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border text-2xl font-semibold focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              From
-            </label>
+            <label className="block text-sm font-medium text-muted-foreground mb-2" htmlFor="from-select">From</label>
             <div className="relative">
-              <CurrencySelect
-                value={fromCurrency}
-                onChange={setFromCurrency}
-                showRecent={true}
-                showFavorites={true}
-                showPopular={true}
-              />
-              {isFromFavorite && (
-                <button
-                  onClick={toggleFromFavorite}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 p-1 hover:text-amber-500 transition-colors"
-                  title="Remove from favorites"
-                >
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                </button>
-              )}
+              <CurrencySelect value={fromCurrency} onChange={setFromCurrency} id="from-select" showRecent showFavorites showPopular />
+              {isFromFavorite && <button onClick={toggleFromFavorite} className="absolute right-10 top-1/2 -translate-y-1/2 p-1 hover:text-amber-500 transition-colors" title="Remove from favorites"><Star className="w-4 h-4 fill-amber-500 text-amber-500" /></button>}
             </div>
           </div>
 
           <div className="flex items-end">
-            <button
-              onClick={handleSwap}
-              className="w-full py-3 rounded-xl border-2 border-border bg-background hover:bg-accent/10 hover:border-primary transition-all group"
-              title="Swap currencies"
-            >
+            <motion.button onClick={handleSwap} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`w-full py-3 rounded-xl border-2 border-border bg-background hover:bg-accent/10 hover:border-primary transition-all group ${isSwapping ? "rotate-180" : ""}`} style={{ transition: isSwapping ? "transform 0.4s ease" : "all 0.2s" }} title="Swap currencies" aria-label="Swap currencies">
               <div className="flex items-center justify-center gap-2">
+                <ArrowUpDown className={`w-5 h-5 group-hover:animate-bounce transition-transform ${isSwapping ? "rotate-180" : ""}`} />
                 <span className="text-sm font-medium">Swap</span>
-                <ArrowUpDown className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" />
               </div>
-            </button>
+            </motion.button>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              To
-            </label>
+            <label className="block text-sm font-medium text-muted-foreground mb-2" htmlFor="to-select">To</label>
             <div className="relative">
-              <CurrencySelect
-                value={toCurrency}
-                onChange={setToCurrency}
-                exclude={[fromCurrency]}
-                showRecent={true}
-                showFavorites={true}
-                showPopular={true}
-              />
-              {isToFavorite && (
-                <button
-                  onClick={toggleToFavorite}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 p-1 hover:text-amber-500 transition-colors"
-                  title="Remove from favorites"
-                >
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                </button>
+              <CurrencySelect value={toCurrency} onChange={setToCurrency} id="to-select" exclude={[fromCurrency]} showRecent showFavorites showPopular />
+              {isToFavorite && <button onClick={toggleToFavorite} className="absolute right-10 top-1/2 -translate-y-1/2 p-1 hover:text-amber-500 transition-colors" title="Remove from favorites"><Star className="w-4 h-4 fill-amber-500 text-amber-500" /></button>}
+            </div>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={convertedAmount} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.05, opacity: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 mb-6 select-none">
+            <div className="text-center">
+              <div className="text-sm text-muted-foreground mb-2">
+                {fromInfo?.flag && <span className="mr-1">{fromInfo.flag}</span>}
+                <span className="font-mono">{amountFormatted}</span>
+                {" "}{fromCurrency} =
+              </div>
+              <motion.div key={convertedFormatted} className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                {toInfo?.flag && <span className="mr-1">{toInfo.flag}</span>}
+                {convertedFormatted}
+              </motion.div>
+
+              {rate && (
+                <motion.div className="mt-4 space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                    <span>1 {fromCurrency} = {rateFormatted} {toCurrency}</span>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">1 {toCurrency} = {inverseRateFormatted} {fromCurrency}</div>
+                </motion.div>
+              )}
+
+              {lastUpdated && (
+                <div className="mt-3 text-[11px] text-muted-foreground flex items-center justify-center gap-1">
+                  <Clock className="w-3 h-3" /> Last updated: {lastUpdatedFormatted}
+                  {isStale && <span className="ml-2 text-amber-600">⚠ May be outdated</span>}
+                </div>
               )}
             </div>
-          </div>
-        </div>
-
-        <motion.div
-          key={convertedAmount}
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 mb-6"
-        >
-          <div className="text-center">
-            <div className="text-sm text-muted-foreground mb-2">
-              {fromInfo?.flag && <span className="mr-1">{fromInfo.flag}</span>}
-              {amount} {fromCurrency} =
-            </div>
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {toInfo?.flag && <span className="mr-1">{toInfo.flag}</span>}
-              {convertedFormatted}
-            </div>
-            
-            {rate && (
-              <div className="mt-4 space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
-                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span>
-                    1 {fromCurrency} = {rateFormatted} {toCurrency}
-                  </span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  1 {toCurrency} = {inverseRateFormatted} {fromCurrency}
-                </div>
-              </div>
-            )}
-            
-            {lastUpdated && (
-              <div className="mt-3 text-xs text-muted-foreground">
-                Last updated: {lastUpdatedFormatted}
-              </div>
-            )}
-          </div>
-        </motion.div>
+          </motion.div>
+        </AnimatePresence>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
-            onClick={handleCopy}
-            disabled={convertedAmount === null}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
-          >
-            <Copy className="w-4 h-4" />
-            Copy
-          </button>
-          <button
-            onClick={handleShare}
-            disabled={convertedAmount === null}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
-          >
-            <Share2 className="w-4 h-4" />
-            Share
-          </button>
-          <button
-            onClick={() => refresh()}
-            disabled={loading}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-          <button
-            onClick={() => window.location.href = `/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}`}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Details
-          </button>
+          <button onClick={handleCopy} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Copy className="w-4 h-4 group-hover:scale-110 transition-transform" /> Copy</button>
+          <button onClick={handleShare} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Share2 className="w-4 h-4 group-hover:scale-110 transition-transform" /> Share</button>
+          <button onClick={() => refresh()} disabled={loading} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : "group-hover:rotate-180"} transition-transform`} /> Refresh</button>
+          <Link href={`/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}`} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium transition-all hover:shadow-lg group" prefetch={true}><BarChart3 className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Details</Link>
         </div>
 
-        {isStale && !loading && (
-          <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm">
-            <Clock className="w-4 h-4 inline mr-2" />
-            Rates may be outdated. Click Refresh for latest.
-          </div>
-        )}
-
-        {!onlineStatus && (
-          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-            <WifiOff className="w-4 h-4 inline mr-2" />
-            You&apos;re offline. Showing cached rates.
-          </div>
-        )}
+        {isStale && !loading && <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm flex items-center gap-2"><Clock className="w-4 h-4 flex-shrink-0" />Rates may be outdated. Click Refresh for latest.</div>}
+        {!onlineStatus && <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2"><WifiOff className="w-4 h-4 flex-shrink-0" />You&apos;re offline. Showing cached rates.</div>}
       </motion.div>
 
-      {showHistorical && !compact && historicalData.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 shadow-lg"
-        >
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            30-Day Trend: {fromCurrency} → {toCurrency}
-          </h3>
-          
-          {historicalLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <div className="h-64 px-2">
-              <SparklineChart 
-                data={historicalData} 
-                height={250}
-                color="hsl(var(--primary))"
-              />
-            </div>
+      {(showCharts && historicalData.length > 0) && (
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }} className="mt-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-primary" />30-Day Trend: {fromCurrency} → {toCurrency}</h3>
+          {historicalLoading ? (<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>) : (
+            <div className="h-64 px-2"><SparklineChart data={historicalData} height={250} color="hsl(var(--primary))" /></div>
           )}
         </motion.div>
       )}
+
+      {(showInsights && fromInfo && toInfo) && (
+        <>
+          <LearningPanel fromCurrency={fromCurrency} toCurrency={toCurrency} amount={amount} convertedAmount={convertedFormatted} rate={rate} />
+          <EconomyComparison fromCurrency={fromCurrency} toCurrency={toCurrency} />
+          <PurchasingPowerComparison fromCurrency={fromCurrency} toCurrency={toCurrency} />
+        </>
+      )}
     </div>
   );
-}
-
-// Helper: Detect user's local currency
-function detectLocalCurrency(): string {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("conversion-hub-preferred-currency");
-    if (saved && getCurrencyByCode(saved)) {
-      return saved;
-    }
-  }
-
-  if (typeof navigator !== "undefined") {
-    const lang = navigator.language || "en-US";
-    const country = lang.split("-")[1]?.toUpperCase();
-    const currencyMap: Record<string, string> = {
-      US: "USD", GB: "GBP", DE: "EUR", FR: "EUR", IT: "EUR",
-      ES: "EUR", JP: "JPY", AU: "AUD", CA: "CAD", CH: "CHF",
-      CN: "CNY", IN: "INR", PK: "PKR", NP: "NPR", BD: "BDT",
-      SA: "SAR", AE: "AED", TH: "THB", TR: "TRY", RU: "RUB",
-      KR: "KRW", MX: "MXN", BR: "BRL", ZA: "ZAR", NG: "NGN",
-    };
-    if (country && currencyMap[country]) {
-      return currencyMap[country];
-    }
-  }
-
-  return "USD";
 }

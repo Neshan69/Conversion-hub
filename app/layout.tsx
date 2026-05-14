@@ -1,10 +1,10 @@
- import type { Metadata } from "next";
- import { Geist, Geist_Mono } from "next/font/google";
- import { ThemeProvider } from "@/components/providers/ThemeProvider";
- import { Header } from "@/components/layout/Header";
- import { Footer } from "@/components/layout/Footer";
- import { SiteWideStructuredData } from "@/components/seo/StructuredData";
- import "@/app/globals.css";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { SiteWideStructuredData } from "@/components/seo/StructuredData";
+import "@/app/globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Conversion Hub",
   },
   description: "Convert 180+ world currencies with live exchange rates. Also featuring length, weight, temperature, and other unit converters. Fast, accurate, and free.",
-  keywords: "currency converter, exchange rates, forex, live rates, unit converter, length converter, weight converter, temperature converter, free tools",
+  keywords: "currency converter, exchange rates, forex, live rates, unit converter, length converter, weight converter, temperature converter, free tools, AI insights",
   authors: [{ name: "Conversion Hub" }],
   creator: "Conversion Hub",
   publisher: "Conversion Hub",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     description: "Convert currencies with live exchange rates and use our suite of unit converters. Trusted by millions for accurate, real-time conversions.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og?title=Conversion+Hub&subtitle=Free+Online+Converters",
         width: 1200,
         height: 630,
         alt: "Conversion Hub - Currency Converter & Unit Tools",
@@ -58,11 +58,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Conversion Hub - Currency Converter & Unit Tools",
     description: "Live currency exchange rates and unit converters. Fast, accurate, and completely free.",
-    images: ["/og-image.png"],
+    images: ["/api/og?title=Conversion+Hub&subtitle=Live+Exchange+Rates"],
     creator: "@conversionhub",
   },
   alternates: {
     canonical: "https://conversionhub.com",
+  },
+  other: {
+    "apple-mobile-web-app-title": "Conversion Hub",
+    "application-name": "Conversion Hub",
   },
 };
 
@@ -74,20 +78,43 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
-        {/* Google Site Verification */}
-        {/* <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> */}
-        
-        {/* Bing Site Verification */}
-        {/* <meta name="msvalidate.01" content="YOUR_VERIFICATION_CODE" /> */}
+        {/* PWA Meta Tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="theme-color" content="#3b82f6" />
+
+        {/* Preconnect to API endpoints */}
+        <link rel="preconnect" href="https://api.exchangerate.host" />
+        <link rel="preconnect" href="https://api.frankfurter.app" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Structured data via server component */}
+        <SiteWideStructuredData />
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider defaultTheme="system" storageKey="conversion-hub-theme">
-          {/* Site-wide structured data */}
-          <SiteWideStructuredData />
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1" role="main">{children}</main>
           <Footer />
         </ThemeProvider>
+
+        {/* Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registered: ', registration.scope);
+                  }).catch(function(error) {
+                    console.log('SW registration failed: ', error);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronRight, ArrowRight } from "lucide-react";
 
 const footerLinks = {
   Product: [
     { label: "All Converters", href: "/convert" },
+    { label: "Currency Converter", href: "/currency" },
     { label: "Length Converter", href: "/convert/length" },
     { label: "Weight Converter", href: "/convert/weight" },
     { label: "Temperature Converter", href: "/convert/temperature" },
-    { label: "Speed Converter", href: "/convert/speed" },
-    { label: "Area Converter", href: "/convert/area" },
-    { label: "Volume Converter", href: "/convert/volume" },
   ],
-  Tools: [
-    { label: "Currency Converter", href: "/currency" },
-    { label: "File Converter", href: "/tools" },
-    { label: "Image Converter", href: "/tools/images" },
+  Resources: [
+    { label: "Currency Charts", href: "/currency" },
+    { label: "Conversion Tables", href: "/convert/length" },
+    { label: "Popular Conversions", href: "/" },
+    { label: "Search Tools", href: "/search" },
   ],
   Company: [
     { label: "About Us", href: "/about" },
@@ -39,37 +39,39 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {/* Brand column */}
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <span className="text-lg font-bold text-primary-foreground">C</span>
+            <Link href="/" className="flex items-center gap-2 mb-4 group">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center transition-transform group-hover:scale-105">
+                <span className="text-sm font-bold text-primary-foreground">C</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Conversion Hub
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground mb-4 max-w-xs">
-              Your all-in-one conversion platform. Fast, accurate, and free tools for unit, currency, and file conversions.
+            <p className="text-sm text-muted-foreground mb-4 max-w-xs leading-relaxed">
+              Your all-in-one conversion platform. Fast, accurate, and free tools for unit, currency, and data conversions.
             </p>
             <Link
               href="/about"
-              className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
             >
               Learn more about us
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {/* Link columns */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3 className="font-semibold text-foreground mb-4">{category}</h3>
-              <ul className="space-y-3">
+              <h3 className="font-semibold text-foreground mb-4 text-sm">{category}</h3>
+              <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                      className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-1 group"
+                      prefetch={true}
                     >
+                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                       {link.label}
                     </Link>
                   </li>
@@ -85,12 +87,9 @@ export function Footer() {
             © {currentYear} Conversion Hub. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/sitemap.xml" className="hover:text-accent transition-colors">
-              Sitemap
-            </Link>
-            <Link href="/robots.txt" className="hover:text-accent transition-colors">
-              Robots
-            </Link>
+            <Link href="/sitemap.xml" className="hover:text-accent transition-colors">Sitemap</Link>
+            <Link href="/robots.txt" className="hover:text-accent transition-colors">Robots</Link>
+            <Link href="/privacy" className="hover:text-accent transition-colors">Privacy</Link>
           </div>
         </div>
       </div>
