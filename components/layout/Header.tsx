@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Menu, X, Search, Moon, Sun, Keyboard, ArrowRight } from "lucide-react";
+import { Menu, X, Search, Moon, Sun } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { UserDashboardInline } from "@/components/converter/UserDashboard";
@@ -24,11 +24,14 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setSearchOpen(false);
+    Promise.resolve().then(() => {
+      setMobileMenuOpen(false);
+      setSearchOpen(false);
+    });
   }, [pathname]);
 
-  const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+  const toggleTheme = () => setTheme(nextTheme);
 
   // Keyboard shortcut for search
   useEffect(() => {
@@ -145,8 +148,9 @@ export function Header() {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="p-1.5 rounded-lg hover:bg-accent/10 transition-colors"
-              aria-label="Toggle theme"
+              className="inline-flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-accent/10 transition-colors text-muted-foreground hover:text-foreground"
+              aria-label={`Switch to ${nextTheme} mode`}
+              title={`Switch to ${nextTheme} mode`}
             >
               <AnimatePresence mode="wait">
                 {resolvedTheme === "dark" ? (
@@ -159,6 +163,9 @@ export function Header() {
                   </motion.div>
                 )}
               </AnimatePresence>
+              <span className="hidden md:inline text-sm font-medium">
+                {resolvedTheme === "dark" ? "Light" : "Night"}
+              </span>
             </button>
 
             {/* Mobile menu */}

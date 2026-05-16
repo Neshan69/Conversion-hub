@@ -18,6 +18,19 @@ import {
 } from "@/lib/insights-engine";
 import { getCurrencyByCode } from "@/types/currency";
 
+interface NewsApiArticle {
+  title?: string;
+  description?: string | null;
+  content?: string | null;
+  url?: string;
+  source?: { name?: string };
+  publishedAt?: string;
+}
+
+interface NewsApiResponse {
+  articles?: NewsApiArticle[];
+}
+
 interface LearningPanelProps {
   fromCurrency: string;
   toCurrency: string;
@@ -223,9 +236,9 @@ export function LearningPanel({
                 <TrendingUp className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-semibold mb-1">
-                    {(insightData as any).trendHeading || "Current Trend"}
+                    Current Trend
                   </p>
-                  <p>{(insightData as any).trend}</p>
+                  <p>{insightData.trend}</p>
                 </div>
               </div>
             </div>
@@ -383,14 +396,14 @@ async function fetchCurrencyNews(
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as NewsApiResponse;
         if (data.articles && data.articles.length > 0) {
-          return data.articles.slice(0, 3).map((article: any) => ({
-            title: article.title,
-            description: article.description || article.content?.substring(0, 200),
-            url: article.url,
+          return data.articles.slice(0, 3).map((article) => ({
+            title: article.title || "Currency market update",
+            description: article.description || article.content?.substring(0, 200) || "",
+            url: article.url || "#",
             source: article.source?.name || "Unknown",
-            publishedAt: article.publishedAt,
+            publishedAt: article.publishedAt || new Date().toISOString(),
           }));
         }
       }

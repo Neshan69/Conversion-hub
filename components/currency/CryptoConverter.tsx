@@ -39,8 +39,6 @@ export function CryptoConverter({
   const [amount, setAmount] = useState<string>(initialAmount);
   const [fromCurrency, setFromCurrency] = useState(initialFrom);
   const [toCurrency, setToCurrency] = useState<string>(initialTo);
-  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
-
   const numericAmount = parseFloat(amount) || 0;
 
   // Fetch crypto rates
@@ -59,19 +57,14 @@ export function CryptoConverter({
   }, [fromCurrency, toCurrency]);
 
   useEffect(() => {
-    fetchRates();
+    Promise.resolve().then(() => fetchRates());
   }, [fetchRates]);
 
-  // Calculate conversion
-  useEffect(() => {
-    if (!rates || !fromCurrency || !toCurrency) return;
-    
+  const convertedAmount = useMemo(() => {
+    if (!rates || !fromCurrency || !toCurrency) return null;
+
     const rate = rates[toCurrency];
-    if (rate) {
-      setConvertedAmount(numericAmount * rate);
-    } else {
-      setConvertedAmount(null);
-    }
+    return rate ? numericAmount * rate : null;
   }, [rates, numericAmount, fromCurrency, toCurrency]);
 
   const swapCurrencies = useCallback(() => {

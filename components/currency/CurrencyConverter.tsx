@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, ArrowUpDown, ChevronUp, ChevronDown, AlertTriangle, WifiOff, Clock, TrendingUp, BarChart3, Copy, Share2, Star } from "lucide-react";
+import { RefreshCw, ArrowUpDown, WifiOff, Clock, TrendingUp, BarChart3, Copy, Share2, Star } from "lucide-react";
 import Link from "next/link";
 import { CurrencySelect } from "@/components/currency/CurrencySelect";
 import { SparklineChart } from "@/components/charts/SparklineChart";
@@ -19,8 +19,7 @@ import {
   detectLocalCurrency,
 } from "@/lib/currency-utils";
 import { getCurrencyByCode } from "@/types/currency";
-import { isOnline as checkOnline } from "@/lib/currency-api";
-import { debounce } from "@/lib/utils";
+import { convertCurrency, isOnline as checkOnline } from "@/lib/currency-api";
 
 export function CurrencyConverter({
   initialFrom,
@@ -71,13 +70,9 @@ export function CurrencyConverter({
   }, [amount]);
 
   const convertedAmount = useMemo(() => {
-    if (!rates || !fromCurrency || !toCurrency || numericAmount === 0) return null;
+    if (!rates || !fromCurrency || !toCurrency) return null;
     try {
-      const fromRate = rates.rates[fromCurrency];
-      const toRate = rates.rates[toCurrency];
-      if (!fromRate || !toRate) return null;
-      const baseAmount = numericAmount / fromRate;
-      const result = baseAmount * toRate;
+      const result = convertCurrency(numericAmount, fromCurrency, toCurrency, rates);
       if (!isFinite(result)) return null;
       return result;
     } catch {
@@ -97,23 +92,23 @@ export function CurrencyConverter({
   const { data: historicalData, loading: historicalLoading } = useHistoricalRates(fromCurrency, toCurrency, 30);
 
   const convertedFormatted = useMemo(() => {
-    if (convertedAmount === null) return "—";
+    if (convertedAmount === null) return "-";
     return formatCurrency(convertedAmount, toCurrency);
   }, [convertedAmount, toCurrency]);
 
   const amountFormatted = useMemo(() => {
-    if (!amount || isNaN(parseFloat(amount))) return "—";
+    if (!amount || isNaN(parseFloat(amount))) return "-";
     return formatCurrency(numericAmount, fromCurrency);
   }, [amount, numericAmount, fromCurrency]);
 
   const rateFormatted = useMemo(() => {
-    if (!rate) return "—";
+    if (!rate) return "-";
     return formatCurrency(rate, toCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
   }, [rate, toCurrency]);
 
   const inverseRate = useMemo(() => (rate ? 1 / rate : null), [rate]);
   const inverseRateFormatted = useMemo(() => {
-    if (!inverseRate) return "—";
+    if (!inverseRate) return "-";
     return formatCurrency(inverseRate, fromCurrency, { style: "decimal", minimumFractionDigits: 4, maximumFractionDigits: 6 });
   }, [inverseRate, fromCurrency]);
 
@@ -154,7 +149,7 @@ export function CurrencyConverter({
 
   const handleShare = useCallback(async () => {
     if (convertedAmount === null) return;
-    const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}?amount=${amount}`;
+    const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}/${toCurrency.toLowerCase()}?amount=${amount}`;
     const shareData = { title: `Convert ${fromCurrency} to ${toCurrency}`, text: `${amount} ${fromCurrency} = ${convertedFormatted}`, url };
     if (navigator.canShare?.(shareData)) {
       await navigator.share(shareData);
@@ -273,14 +268,14 @@ export function CurrencyConverter({
           <button onClick={handleCopy} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Copy className="w-4 h-4 group-hover:scale-110 transition-transform" /> Copy</button>
           <button onClick={handleShare} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Share2 className="w-4 h-4 group-hover:scale-110 transition-transform" /> Share</button>
           <button onClick={() => refresh()} disabled={loading} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : "group-hover:rotate-180"} transition-transform`} /> Refresh</button>
-          <Link href={`/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}`} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium transition-all hover:shadow-lg group" prefetch={true}><BarChart3 className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Details</Link>
+          <Link href={`/currency/${fromCurrency.toLowerCase()}/${toCurrency.toLowerCase()}`} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium transition-all hover:shadow-lg group" prefetch={true}><BarChart3 className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Details</Link>
         </div>
 
         {isStale && !loading && <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm flex items-center gap-2"><Clock className="w-4 h-4 flex-shrink-0" />Rates may be outdated. Click Refresh for latest.</div>}
         {!onlineStatus && <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2"><WifiOff className="w-4 h-4 flex-shrink-0" />You&apos;re offline. Showing cached rates.</div>}
       </motion.div>
 
-      {(showCharts && historicalData.length > 0) && (
+      {(showCharts && showHistorical && historicalData.length > 0) && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }} className="mt-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-primary" />30-Day Trend: {fromCurrency} → {toCurrency}</h3>
           {historicalLoading ? (<div className="h-64 flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>) : (

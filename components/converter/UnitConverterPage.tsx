@@ -71,6 +71,7 @@ export function UnitConverterPage({
 
           {/* Main converter */}
           <Converter
+            key={`${categoryId}:${initialFromUnit || ""}:${initialToUnit || ""}`}
             categoryId={categoryId}
             initialFromUnit={initialFromUnit}
             initialToUnit={initialToUnit}

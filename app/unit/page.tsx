@@ -87,7 +87,7 @@ export default function UnitPage() {
                 transition={{ duration: 0.35, delay: index * 0.04 }}
               >
                 <Link
-                  href={`/convert/${category.id}`}
+                  href={`/unit/${category.id}`}
                   className="group block p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-1.5 transition-all duration-250 active:scale-[0.98]"
                   style={{ touchAction: "manipulation" }}
                   prefetch={true}
@@ -124,16 +124,16 @@ export default function UnitPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-w-4xl mx-auto">
             {[
-              { label: "km → mi", href: "/convert/length?from=kilometer&to=mile" },
-              { label: "kg → lbs", href: "/convert/weight?from=kilogram&to=pound" },
-              { label: "°C → °F", href: "/convert/temperature?from=celsius&to=fahrenheit" },
-              { label: "L → gal", href: "/convert/volume?from=liter&to=gallonUS" },
-              { label: "m → ft", href: "/convert/length?from=meter&to=foot" },
-              { label: "GB → MB", href: "/convert/storage?from=gigabyte&to=megabyte" },
-              { label: "km/h → mph", href: "/convert/speed?from=kilometerPerHour&to=milePerHour" },
-              { label: "hr → min", href: "/convert/time?from=hour&to=minute" },
-              { label: "m² → ft²", href: "/convert/area?from=squareMeter&to=squareFoot" },
-              { label: "°F → °C", href: "/convert/temperature?from=fahrenheit&to=celsius" },
+              { label: "km → mi", href: "/unit/length?from=kilometer&to=mile" },
+              { label: "kg → lbs", href: "/unit/weight?from=kilogram&to=pound" },
+              { label: "°C → °F", href: "/unit/temperature?from=celsius&to=fahrenheit" },
+              { label: "L → gal", href: "/unit/volume?from=liter&to=gallonUS" },
+              { label: "m → ft", href: "/unit/length?from=meter&to=foot" },
+              { label: "GB → MB", href: "/unit/storage?from=gigabyte&to=megabyte" },
+              { label: "km/h → mph", href: "/unit/speed?from=kilometerPerHour&to=milePerHour" },
+              { label: "hr → min", href: "/unit/time?from=hour&to=minute" },
+              { label: "m² → ft²", href: "/unit/area?from=squareMeter&to=squareFoot" },
+              { label: "°F → °C", href: "/unit/temperature?from=fahrenheit&to=celsius" },
             ].map((link) => (
               <Link
                 key={link.href}

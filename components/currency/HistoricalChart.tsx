@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Calendar, Zap, ArrowRight, Info } from "lucide-react";
+import Link from "next/link";
 import { getCurrencyByCode } from "@/types/currency";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { useHistoricalRates } from "@/lib/currency-utils";
@@ -157,7 +158,7 @@ export function WhatIfSimulator({ fromCurrency, toCurrency }: { fromCurrency: st
     // Default to 1 year ago
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    setTargetDate(oneYearAgo.toISOString().split("T")[0]);
+    Promise.resolve().then(() => setTargetDate(oneYearAgo.toISOString().split("T")[0]));
   }, []);
 
   const simulate = useCallback(() => {
@@ -215,10 +216,10 @@ export function WhatIfSimulator({ fromCurrency, toCurrency }: { fromCurrency: st
     >
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Zap className="w-5 h-5 text-primary" />
-        "What If" Converter Simulator
+        &quot;What If&quot; Converter Simulator
       </h3>
       <p className="text-sm text-muted-foreground mb-5">
-        See how a conversion from the past compares to today's rate. Great for understanding currency trends!
+        See how a conversion from the past compares to today&apos;s rate. Great for understanding currency trends!
       </p>
 
       <div className="space-y-4">
@@ -407,9 +408,9 @@ export function HistoricalRatePage({ fromCurrency, toCurrency }: { fromCurrency:
       <nav className="bg-muted/30 border-b border-border py-3">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-            <li><a href="/" className="hover:text-primary transition-colors">Home</a></li>
+            <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
             <li>/</li>
-            <li><a href="/currency" className="hover:text-primary transition-colors">Currency</a></li>
+            <li><Link href="/currency" className="hover:text-primary transition-colors">Currency</Link></li>
             <li>/</li>
             <li className="font-medium text-foreground">
               {fromCurrency} → {toCurrency} History

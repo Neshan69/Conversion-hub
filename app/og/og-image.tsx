@@ -45,7 +45,6 @@ export default async function handler(req: NextRequest) {
   let title = 'Conversion Hub';
   let subtitle = 'Free Online Converters';
   let emoji = '🔄';
-  let accentColor = '#3b82f6';
 
   if (hasType && hasFrom && hasTo) {
     const from = getCurrencyInfo(searchParams.get('from')!);

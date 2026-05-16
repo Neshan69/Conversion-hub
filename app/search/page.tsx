@@ -90,7 +90,9 @@ export default function SearchPage() {
     }
   }, [filteredResults, selectedIndex]);
 
-  useEffect(() => { setSelectedIndex(0); }, [query]);
+  useEffect(() => {
+    Promise.resolve().then(() => setSelectedIndex(0));
+  }, [query]);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   return (
@@ -207,7 +209,7 @@ export default function SearchPage() {
                 ) : (
                   <div className="text-center py-12">
                     <Search className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">No results for "{query}"</p>
+                    <p className="text-muted-foreground">No results for &quot;{query}&quot;</p>
                   </div>
                 )}
               </motion.div>
@@ -226,9 +228,9 @@ export default function SearchPage() {
                 { label: "L → gal", href: "/convert/volume?from=liter&to=gallonUS" },
                 { label: "m → ft", href: "/convert/length?from=meter&to=foot" },
                 { label: "GB → MB", href: "/convert/storage?from=gigabyte&to=megabyte" },
-                { label: "USD → EUR", href: "/currency/usd/to/eur" },
-                { label: "USD → INR", href: "/currency/usd/to/inr" },
-                { label: "EUR → GBP", href: "/currency/eur/to/gbp" },
+                { label: "USD → EUR", href: "/currency/usd/eur" },
+                { label: "USD → INR", href: "/currency/usd/inr" },
+                { label: "EUR → GBP", href: "/currency/eur/gbp" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="p-3.5 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-accent/5 transition-all text-sm font-medium text-foreground flex items-center gap-2">
                   {link.label}

@@ -13,7 +13,7 @@ export function CategoryCards() {
   useEffect(() => {
     const prefetchRoutes = async () => {
       // Prefetch all category pages
-      const routes = ["/currency", ...conversionCategories.map(c => `/convert/${c.id}`)];
+      const routes = ["/currency", ...conversionCategories.map(c => `/unit/${c.id}`)];
       routes.forEach(route => router.prefetch(route));
     };
     prefetchRoutes();
@@ -44,7 +44,7 @@ export function CategoryCards() {
 {/* Category grid */}
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
            {allCategories.map((category, index) => {
-             const href = category.id === "currency" ? "/currency" : `/convert/${category.id}`;
+             const href = category.id === "currency" ? "/currency" : `/unit/${category.id}`;
              return (
                <motion.div
                  key={category.id}

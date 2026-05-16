@@ -197,7 +197,7 @@ export function CurrencySelect({
   }, [highlightedIndex]);
 
   useEffect(() => {
-    setHighlightedIndex(-1);
+    Promise.resolve().then(() => setHighlightedIndex(-1));
   }, [recentCodes, favoriteCodes, popularCodes, resultItems]);
 
   return (

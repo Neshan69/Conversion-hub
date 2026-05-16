@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, TrendingUp, Shield, Clock, BarChart3, Brain } from "lucide-react";
+import { TrendingUp, Shield, Brain } from "lucide-react";
 import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
 import { LearningPanel } from "@/components/currency/LearningPanel";
 
@@ -24,13 +24,6 @@ export function CurrencyPageClient() {
     { from: "USD", to: "JPY", flag: "🇺🇸→🇯🇵" },
     { from: "CNY", to: "USD", flag: "🇨🇳→🇺🇸" },
   ];
-
-  const handleStartConverting = () => {
-    const converterEl = document.getElementById("main-converter");
-    if (converterEl) {
-      converterEl.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
 
   return (
     <div className="min-h-screen">
@@ -154,7 +147,7 @@ export function CurrencyPageClient() {
             {popularConversions.map((pair) => (
               <Link
                 key={`${pair.from}-${pair.to}`}
-                href={`/currency/${pair.from.toLowerCase()}/to/${pair.to.toLowerCase()}`}
+                href={`/currency/${pair.from.toLowerCase()}/${pair.to.toLowerCase()}`}
                 className="group flex items-center justify-between p-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-200"
                 prefetch={true}
               >

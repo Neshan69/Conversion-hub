@@ -18,12 +18,13 @@ export function ThunderBot() {
       id: "welcome",
       role: "bot",
       content: "⚡ Welcome to Thunder Bot! I can help you with currency conversions, unit conversions, and financial insights. What can I help you with today?",
-      timestamp: Date.now(),
+      timestamp: 0,
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageIdRef = useRef(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,12 +38,16 @@ export function ThunderBot() {
     e.preventDefault();
     if (!input.trim()) return;
 
+    messageIdRef.current += 1;
+    const messageId = messageIdRef.current;
+    const submittedInput = input;
+
     // Add user message
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
+      id: `user-${messageId}`,
       role: "user",
-      content: input,
-      timestamp: Date.now(),
+      content: submittedInput,
+      timestamp: messageId,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -51,12 +56,12 @@ export function ThunderBot() {
 
     // Simulate bot response (can be replaced with actual API call)
     setTimeout(() => {
-      const botResponse = generateBotResponse(input);
+      const botResponse = generateBotResponse(submittedInput);
       const botMessage: Message = {
-        id: `bot-${Date.now()}`,
+        id: `bot-${messageId}`,
         role: "bot",
         content: botResponse,
-        timestamp: Date.now(),
+        timestamp: messageId,
       };
       setMessages((prev) => [...prev, botMessage]);
       setLoading(false);

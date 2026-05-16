@@ -16,21 +16,24 @@ interface ConverterProps {
 
 export function Converter({ categoryId = "length", initialFromUnit, initialToUnit }: ConverterProps) {
   const category = useMemo(() => getCategoryById(categoryId), [categoryId]);
+  const defaultUnits = useMemo(() => {
+    if (!category) return { from: "", to: "" };
+
+    const unitKeys = Object.keys(category.units);
+    const from = initialFromUnit && category.units[initialFromUnit] ? initialFromUnit : unitKeys[0] || "";
+    const to =
+      initialToUnit && category.units[initialToUnit]
+        ? initialToUnit
+        : unitKeys.find((unitKey) => unitKey !== from) || from;
+
+    return { from, to };
+  }, [category, initialFromUnit, initialToUnit]);
   const [fromValue, setFromValue] = useState<string>("1");
-  const [fromUnit, setFromUnit] = useState<string>(initialFromUnit || "");
-  const [toUnit, setToUnit] = useState<string>(initialToUnit || "");
+  const [fromUnit, setFromUnit] = useState<string>(defaultUnits.from);
+  const [toUnit, setToUnit] = useState<string>(defaultUnits.to);
   const [copied, setCopied] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
   const fromInputRef = useRef<HTMLInputElement>(null);
-
-  // Initialize units when category changes
-  useEffect(() => {
-    if (category && !fromUnit) {
-      const unitKeys = Object.keys(category.units);
-      setFromUnit(unitKeys[0]);
-      setToUnit(unitKeys[1] || unitKeys[0]);
-    }
-  }, [category, fromUnit]);
 
   // Create conversion engine
   const engine = useMemo(() => {

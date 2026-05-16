@@ -61,7 +61,7 @@ export default function NotFound() {
                 { label: "kg to lbs", href: "/convert/weight?from=kilogram&to=pound" },
                 { label: "km to miles", href: "/convert/length?from=kilometer&to=mile" },
                 { label: "°C to °F", href: "/convert/temperature?from=celsius&to=fahrenheit" },
-                { label: "USD to EUR", href: "/currency/usd/to/eur" },
+                { label: "USD to EUR", href: "/currency/usd/eur" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="px-4 py-2 rounded-full bg-muted hover:bg-accent/20 text-sm font-medium transition-colors">
                   {link.label}

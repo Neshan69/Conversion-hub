@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      url: `https://conversion-hub.vercel.app/currency/${upperFrom.toLowerCase()}-to-${upperTo.toLowerCase()}`,
+      url: `https://conversion-hub.vercel.app/currency/${upperFrom.toLowerCase()}/${upperTo.toLowerCase()}`,
       type: "website",
       locale: "en_US",
       siteName: "Conversion Hub",
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [`/api/og?from=${upperFrom}&to=${upperTo}&type=currency`],
     },
     alternates: {
-      canonical: `https://conversion-hub.vercel.app/currency/${upperFrom.toLowerCase()}-to-${upperTo.toLowerCase()}`,
+      canonical: `https://conversion-hub.vercel.app/currency/${upperFrom.toLowerCase()}/${upperTo.toLowerCase()}`,
     },
     robots: {
       index: true,

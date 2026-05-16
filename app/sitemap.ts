@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { conversionCategories } from "@/data/conversions";
-import { currencies, getPopularCurrencies } from "@/types/currency";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://conversionhub.com";
@@ -27,7 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     topCurrencies.forEach((to) => {
       if (from !== to) {
         currencyPairPages.push({
-          url: `${baseUrl}/currency/${from}/to/${to}`,
+          url: `${baseUrl}/currency/${from}/${to}`,
           lastModified: new Date(),
           changeFrequency: "daily",
           priority: 0.7,
