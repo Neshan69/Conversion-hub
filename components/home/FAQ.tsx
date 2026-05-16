@@ -49,8 +49,8 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
             <div className="pb-5 text-muted-foreground leading-relaxed">
               <p>{answer}</p>
             </div>
-          </motion>
-        </AnimatePresence>
+          </motion.div>
+        )}
       </AnimatePresence>
     </motion.div>
   );
@@ -135,7 +135,7 @@ const faqs = [
   }
 ];
 
-export function FAQAccordion() {
+export function FAQ() {
   return (
     <div className="max-w-3xl mx-auto space-y-2">
       {faqs.map((section, catIndex) => (

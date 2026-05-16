@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import { generateInsight } from "@/lib/insights-engine";
 
 export const runtime = "edge";

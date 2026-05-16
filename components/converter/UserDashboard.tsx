@@ -15,6 +15,7 @@ import {
   toggleFavoriteCurrency,
 } from "@/lib/currency-utils";
 import { getCategoryById } from "@/data/conversions";
+import { getCurrencyByCode } from "@/types/currency";
 import { cn } from "@/lib/utils";
 
 // Trending/popular pairs for recommendation

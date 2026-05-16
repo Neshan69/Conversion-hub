@@ -1,4 +1,4 @@
-import { NextRequest } from "next";
+import { NextRequest } from "next/server";
 import { ImageResponse } from "@vercel/og";
 
 export const runtime = "edge";
@@ -23,7 +23,6 @@ const CURRENCY_INFO: Record<string, { name: string; flag: string; symbol: string
   AED: { name: "UAE Dirham", flag: "🇦🇪", symbol: "د.إ" },
   BRL: { name: "Brazilian Real", flag: "🇧🇷", symbol: "R$" },
   MXN: { name: "Mexican Peso", flag: "🇲🇽", symbol: "$" },
-  GBP: { name: "British Pound", flag: "🇬🇧", symbol: "£" },
 };
 
 const CATEGORY_EMOJIS: Record<string, string> = {

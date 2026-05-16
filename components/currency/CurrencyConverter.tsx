@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, ArrowUpDown, ChevronUp, ChevronDown, AlertTriangle, WifiOff, Clock, TrendingUp, BarChart3, Copy, Share2 } from "lucide-react";
+import { RefreshCw, ArrowUpDown, ChevronUp, ChevronDown, AlertTriangle, WifiOff, Clock, TrendingUp, BarChart3, Copy, Share2, Star } from "lucide-react";
+import Link from "next/link";
 import { CurrencySelect } from "@/components/currency/CurrencySelect";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { EconomyComparison, PurchasingPowerComparison } from "@/components/currency/EconomyComparison";

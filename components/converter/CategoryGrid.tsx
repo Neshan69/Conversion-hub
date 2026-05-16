@@ -1,13 +1,10 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { conversionCategories, currencyCategory } from "@/data/conversions";
 
 export function CategoryGrid({ categories }: { categories: typeof conversionCategories }) {
-  const router = useRouter();
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -39,8 +36,9 @@ export function CategoryGrid({ categories }: { categories: typeof conversionCate
     >
       {categories.map((category) => (
         <motion.div key={category.id} variants={itemVariants}>
-          <button
-            onClick={() => router.push(`/unit/${category.id}`)}
+          <Link
+            href={`/unit/${category.id}`}
+            prefetch={true}
             className="group w-full h-full text-left p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-1.5 transition-all duration-250 active:scale-[0.98]"
             style={{ touchAction: "manipulation" }}
             aria-label={`Navigate to ${category.name} converter`}
@@ -77,7 +75,7 @@ export function CategoryGrid({ categories }: { categories: typeof conversionCate
                 </svg>
               </span>
             </div>
-          </button>
+          </Link>
         </motion.div>
       ))}
     </motion.div>

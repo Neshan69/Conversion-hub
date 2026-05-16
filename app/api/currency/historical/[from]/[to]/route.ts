@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import { fetchHistoricalRates } from "@/lib/currency-api";
 import { getCurrencyByCode } from "@/types/currency";
 

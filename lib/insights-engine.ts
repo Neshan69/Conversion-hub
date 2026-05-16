@@ -1,3 +1,5 @@
+import { getCurrencyByCode } from "@/types/currency";
+
 // Free news sources for currency context
 // Uses NewsAPI free tier (100 requests/day) with fallback strategies
 
@@ -12,7 +14,7 @@ interface NewsArticle {
   publishedAt: string;
 }
 
-interface InsightData {
+export interface InsightData {
   explanation: string;
   factors: string[];
   trend: string;

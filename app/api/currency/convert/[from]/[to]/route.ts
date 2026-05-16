@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next";
-import { fetchLiveRates, formatCurrency, getExchangeRate } from "@/lib/currency-api";
+import { NextRequest, NextResponse } from "next/server";
+import { fetchLiveRates } from "@/lib/currency-api";
+import { formatCurrency, getExchangeRate } from "@/lib/currency-utils";
 import { getCurrencyByCode } from "@/types/currency";
 
 export const runtime = "edge";

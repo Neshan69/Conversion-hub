@@ -1,10 +1,9 @@
 // Navigation items configuration for consistent navigation across components
-import { IconType } from "react-icons";
 
 interface NavItem {
   label: string;
   href: string;
-  icon?: IconType;
+  icon?: unknown;
 }
 
 // Note: Using Lucide React icons directly in the component

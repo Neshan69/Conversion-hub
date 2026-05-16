@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import { currencies, getCurrencyByCode, searchCurrencies } from "@/types/currency";
 
 export const runtime = "edge";

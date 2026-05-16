@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { searchCurrencies, getPopularCurrencies, Currency, getCurrencyByCode } from "@/types/currency";
 import { getRecentCurrencies, getFavoriteCurrencies, addRecentCurrency } from "@/lib/currency-utils";
 
@@ -10,6 +10,7 @@ interface CurrencySelectProps {
   value: string;
   onChange: (code: string) => void;
   label?: string;
+  id?: string;
   exclude?: string[];
   showPopular?: boolean;
   showRecent?: boolean;
@@ -22,6 +23,7 @@ export function CurrencySelect({
   value,
   onChange,
   label,
+  id,
   exclude = [],
   showPopular = true,
   showRecent = true,
@@ -77,7 +79,9 @@ export function CurrencySelect({
 
   const recentCodes = showRecent ? getRecentCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
   const favoriteCodes = showFavorites ? getFavoriteCurrencies().filter(code => !exclude.includes(code) && code !== value) : [];
-  const popularCodes = showPopular ? getPopularCurrencies().filter(c => !exclude.includes(c.code) && c.code !== value) : [];
+  const popularCodes = showPopular
+    ? getPopularCurrencies().filter(c => !exclude.includes(c.code) && c.code !== value).map(c => c.code)
+    : [];
 
   const resultItems = filteredResults
     .filter(c => {
@@ -108,6 +112,7 @@ export function CurrencySelect({
 
     if (popularCodes.length > 0) {
       const popularItems = popularCodes
+        .map(code => getCurrencyByCode(code))
         .filter((item): item is Currency => item !== null);
       sections.push({ type: "popular", label: "Popular", items: popularItems });
     }
@@ -230,6 +235,7 @@ export function CurrencySelect({
         {/* Search input when open */}
         {isOpen && (
           <input
+            id={id}
             ref={inputRef}
             type="text"
             value={query}

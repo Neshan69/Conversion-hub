@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ThunderBot } from "@/components/chatbot/ThunderBot";
 import { SiteWideStructuredData } from "@/components/seo/StructuredData";
 import "@/app/globals.css";
 
@@ -97,6 +98,7 @@ export default function RootLayout({
           <Header />
           <main className="flex-1" role="main">{children}</main>
           <Footer />
+          <ThunderBot />
         </ThemeProvider>
 
         {/* Service Worker Registration */}

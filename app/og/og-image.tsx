@@ -4,7 +4,7 @@
 // ──────────────────────────────────────
 
 import { ImageResponse } from '@vercel/og';
-import { NextRequest } from 'next';
+import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
@@ -29,7 +29,6 @@ function getCurrencyInfo(code: string) {
     AED: { name: 'UAE Dirham', flag: '🇦🇪', symbol: 'د.إ' },
     BRL: { name: 'Brazilian Real', flag: '🇧🇷', symbol: 'R$' },
     MXN: { name: 'Mexican Peso', flag: '🇲🇽', symbol: '$' },
-    CAD: { name: 'Canadian Dollar', flag: '🇨🇦', symbol: 'C$' },
   };
   return currencies[code.toUpperCase()] || { name: code.toUpperCase(), flag: '🌐', symbol: '' };
 }

@@ -59,7 +59,7 @@ export function LearningPanel({
         }
 
         // Generate fresh insight
-        const data = generateInsight(fromCurrency, toCurrency, rate);
+        const data = generateInsight(fromCurrency, toCurrency, rate ?? null);
 
         // Fetch latest news (best effort - non-blocking)
         const news = await fetchCurrencyNews(fromCurrency, toCurrency).catch(() => []);
@@ -74,7 +74,7 @@ export function LearningPanel({
         cacheInsight(pairKey, insightWithNews);
       } catch (err) {
         // Still show cached or generated data
-        const fallback = generateInsight(fromCurrency, toCurrency, rate);
+        const fallback = generateInsight(fromCurrency, toCurrency, rate ?? null);
         setInsightData(fallback);
         setInsightError("Could not fetch latest news. Showing general analysis.");
       } finally {
@@ -104,12 +104,14 @@ export function LearningPanel({
 
   const handleNewContent = useCallback(() => {
     setLoading(true);
-    const newContent = generateInsight(fromCurrency, toCurrency, rate);
+    const newContent = generateInsight(fromCurrency, toCurrency, rate ?? null);
     if (activeTab === "insights") {
       setInsightData(newContent);
       cacheInsight(pairKey, newContent);
     }
-    saveComment(content || newContent);
+    if (content) {
+      saveComment(content);
+    }
     setLoading(false);
   }, [activeTab, content, fromCurrency, toCurrency, rate, pairKey]);
 

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Search, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, ArrowRight, ChevronDown, ChevronUp, Keyboard } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { conversionCategories } from "@/data/conversions";
 import { cn } from "@/lib/utils";

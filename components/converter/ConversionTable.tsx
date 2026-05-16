@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { ConversionCategory } from "@/types/converter";
 
 interface ConversionTableProps {
@@ -94,7 +94,7 @@ export const ConversionTable = memo(function ConversionTable({ category }: Conve
                   <motion.tr
                     key={key}
                     initial={{ opacity: 0 }}
-                    while={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     className={`border-b border-border/40 transition-colors hover:bg-muted/30 ${
                       isBaseUnit ? 'bg-primary/5 font-semibold' : ''
                     }`}
