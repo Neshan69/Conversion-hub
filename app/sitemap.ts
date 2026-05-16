@@ -6,13 +6,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1 },
-    { url: `${baseUrl}/convert`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
+    { url: `${baseUrl}/unit`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
     { url: `${baseUrl}/currency`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.9 },
-    { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 },
   ];
 
   const categoryPages = conversionCategories.map((category) => ({
-    url: `${baseUrl}/convert/${category.id}`,
+    url: `${baseUrl}/unit/${category.id}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.9,
@@ -35,6 +34,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
+  const seoCurrencyPages = ["usd-to-gbp", "usd-to-npr", "usd-to-eur", "usd-to-inr"].map((pair) => ({
+    url: `${baseUrl}/currency/${pair}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.85,
+  }));
+
+  const seoUnitPages = ["kg-to-lbs", "cm-to-feet"].map((pair) => ({
+    url: `${baseUrl}/unit/${pair}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.85,
+  }));
+
   // Conversion pages
   const conversionPages: Array<{ url: string; lastModified: Date; changeFrequency: "daily"; priority: number }> = [];
   for (const category of conversionCategories) {
@@ -43,7 +56,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       for (const to of unitKeys) {
         if (from !== to) {
           conversionPages.push({
-            url: `${baseUrl}/convert/${category.id}/${from}-to-${to}`,
+            url: `${baseUrl}/unit/${category.id}?from=${from}&to=${to}`,
             lastModified: new Date(),
             changeFrequency: "daily",
             priority: 0.8,
@@ -53,5 +66,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
-  return [...staticPages, ...categoryPages, ...currencyPairPages, ...conversionPages];
+  return [...staticPages, ...categoryPages, ...seoCurrencyPages, ...seoUnitPages, ...currencyPairPages, ...conversionPages];
 }

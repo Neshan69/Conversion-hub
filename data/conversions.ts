@@ -128,7 +128,7 @@ export const conversionCategories: ConversionCategory[] = [
   },
   {
     id: "storage",
-    name: "Storage",
+    name: "Data Storage",
     description: "Convert between bytes, kilobytes, megabytes, and more",
     icon: "💾",
     color: "from-violet-400 to-purple-500",
@@ -143,7 +143,69 @@ export const conversionCategories: ConversionCategory[] = [
       petabyte: { name: "Petabyte", symbol: "PB", factor: 1125899906842624 },
     },
   },
+  {
+    id: "pressure",
+    name: "Pressure",
+    description: "Convert between pascals, bar, PSI, atmospheres, and more",
+    icon: "PSI",
+    color: "from-sky-400 to-blue-600",
+    baseUnit: "pascal",
+    units: {
+      pascal: { name: "Pascal", symbol: "Pa", factor: 1 },
+      kilopascal: { name: "Kilopascal", symbol: "kPa", factor: 1000 },
+      megapascal: { name: "Megapascal", symbol: "MPa", factor: 1000000 },
+      bar: { name: "Bar", symbol: "bar", factor: 100000 },
+      millibar: { name: "Millibar", symbol: "mbar", factor: 100 },
+      atmosphere: { name: "Atmosphere", symbol: "atm", factor: 101325 },
+      psi: { name: "Pound per square inch", symbol: "psi", factor: 6894.757 },
+      torr: { name: "Torr", symbol: "Torr", factor: 133.322 },
+    },
+  },
+  {
+    id: "energy",
+    name: "Energy",
+    description: "Convert between joules, calories, watt-hours, BTU, and more",
+    icon: "kWh",
+    color: "from-lime-400 to-emerald-600",
+    baseUnit: "joule",
+    units: {
+      joule: { name: "Joule", symbol: "J", factor: 1 },
+      kilojoule: { name: "Kilojoule", symbol: "kJ", factor: 1000 },
+      calorie: { name: "Calorie", symbol: "cal", factor: 4.184 },
+      kilocalorie: { name: "Kilocalorie", symbol: "kcal", factor: 4184 },
+      wattHour: { name: "Watt-hour", symbol: "Wh", factor: 3600 },
+      kilowattHour: { name: "Kilowatt-hour", symbol: "kWh", factor: 3600000 },
+      btu: { name: "British thermal unit", symbol: "BTU", factor: 1055.056 },
+      electronvolt: { name: "Electronvolt", symbol: "eV", factor: 1.602176634e-19 },
+    },
+  },
 ];
+
+export const unitAliases: Record<string, string> = {
+  kg: "kilogram",
+  kilogram: "kilogram",
+  lbs: "pound",
+  lb: "pound",
+  pound: "pound",
+  cm: "centimeter",
+  centimeter: "centimeter",
+  feet: "foot",
+  ft: "foot",
+  foot: "foot",
+  meter: "meter",
+  m: "meter",
+  km: "kilometer",
+  mi: "mile",
+  c: "celsius",
+  f: "fahrenheit",
+  pa: "pascal",
+  kpa: "kilopascal",
+  psi: "psi",
+  j: "joule",
+  kj: "kilojoule",
+  wh: "wattHour",
+  kwh: "kilowattHour",
+};
 
 // Currency is a separate category, not in the standard unit converters list
 export const currencyCategory = {
@@ -177,3 +239,20 @@ export const getCategoryByUnits = (fromUnit: string, toUnit: string): Conversion
   }
   return undefined;
 };
+
+export function normalizeUnitSlug(slug: string): string {
+  return unitAliases[slug] || slug;
+}
+
+export function parseUnitPairSlug(slug?: string): { fromUnit: string; toUnit: string; category: ConversionCategory } | null {
+  if (!slug || typeof slug !== "string" || !slug.includes("-to-")) return null;
+  const [rawFrom, rawTo] = slug.split("-to-");
+  if (!rawFrom || !rawTo) return null;
+
+  const fromUnit = normalizeUnitSlug(rawFrom);
+  const toUnit = normalizeUnitSlug(rawTo);
+  const category = getCategoryByUnits(fromUnit, toUnit);
+
+  if (!category) return null;
+  return { fromUnit, toUnit, category };
+}

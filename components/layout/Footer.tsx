@@ -6,15 +6,15 @@ import { ChevronRight, ArrowRight } from "lucide-react";
 
 const footerLinks = {
   Product: [
-    { label: "All Converters", href: "/convert" },
+    { label: "All Converters", href: "/unit" },
     { label: "Currency Converter", href: "/currency" },
-    { label: "Length Converter", href: "/convert/length" },
-    { label: "Weight Converter", href: "/convert/weight" },
-    { label: "Temperature Converter", href: "/convert/temperature" },
+    { label: "Length Converter", href: "/unit/length" },
+    { label: "Weight Converter", href: "/unit/weight" },
+    { label: "Temperature Converter", href: "/unit/temperature" },
   ],
   Resources: [
     { label: "Currency Charts", href: "/currency" },
-    { label: "Conversion Tables", href: "/convert/length" },
+    { label: "Conversion Tables", href: "/unit/length" },
     { label: "Popular Conversions", href: "/" },
     { label: "Search Tools", href: "/search" },
   ],

@@ -29,7 +29,7 @@ export function ConverterStructuredData({
       "@type": "WebApplication",
       "name": `${fromUnit.name} to ${toUnit.name} Converter`,
       "description": `Free online ${fromUnit.name} to ${toUnit.name} converter. Convert ${fromUnit.symbol} to ${toUnit.symbol} instantly.`,
-      "url": `https://conversionhub.com/convert/${categoryId}/${initialFromUnit}-to-${initialToUnit}`,
+      "url": `https://conversionhub.com/unit/${categoryId}?from=${initialFromUnit}&to=${initialToUnit}`,
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "Web",
       "offers": {

@@ -2,14 +2,17 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Search, Globe, Zap, Shield, Clock } from "lucide-react";
+import { ArrowRight, Globe, Ruler, Zap, Shield, Clock } from "lucide-react";
+import { useState } from "react";
 import { CurrencyConverter } from "@/components/currency/CurrencyConverter";
-import { conversionCategories, currencyCategory } from "@/data/conversions";
+import { Converter } from "@/components/converter/Converter";
+import { conversionCategories } from "@/data/conversions";
 
 export function Hero() {
+  const [activeTool, setActiveTool] = useState<"currency" | "unit">("currency");
   const stats = [
     { icon: Globe, value: "180+", label: "Currencies" },
-    { icon: Zap, value: "8+", label: "Unit Categories" },
+    { icon: Zap, value: "10", label: "Unit Categories" },
     { icon: Clock, value: "Real-time", label: "Rates" },
     { icon: Shield, value: "100%", label: "Free" },
   ];
@@ -109,16 +112,79 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Main Converter Card */}
+        {/* In-page converter switcher */}
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           className="max-w-4xl mx-auto"
         >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            {[
+              {
+                id: "currency" as const,
+                title: "Currency Converter",
+                body: "Live exchange rates for USD, NPR, GBP, EUR and 180+ currencies.",
+                icon: Globe,
+              },
+              {
+                id: "unit" as const,
+                title: "Unit Converter",
+                body: "Length, weight, temperature, pressure, energy, storage and more.",
+                icon: Ruler,
+              },
+            ].map((tool) => {
+              const Icon = tool.icon;
+              const active = activeTool === tool.id;
+              return (
+                <motion.button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => setActiveTool(tool.id)}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative overflow-hidden rounded-2xl border p-5 text-left backdrop-blur-xl transition-all ${
+                    active
+                      ? "border-primary/50 bg-primary/10 shadow-2xl shadow-primary/15"
+                      : "border-border/60 bg-card/60 hover:border-primary/35 hover:bg-card/80"
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="hero-tool-glow"
+                      className="absolute inset-0 bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <div className="relative flex items-start gap-4">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${active ? "bg-gradient-to-br from-primary to-accent text-primary-foreground" : "bg-muted text-primary"}`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{tool.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{tool.body}</p>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
           <div className="relative rounded-3xl bg-card/80 backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
             <div className="relative p-6 md:p-8">
-              <CurrencyConverter compact={false} />
+              <motion.div
+                key={activeTool}
+                initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+              >
+                {activeTool === "currency" ? (
+                  <CurrencyConverter compact={false} showInsights={false} showHistorical={false} />
+                ) : (
+                  <Converter categoryId="length" initialFromUnit="centimeter" initialToUnit="foot" />
+                )}
+              </motion.div>
             </div>
           </div>
         </motion.div>

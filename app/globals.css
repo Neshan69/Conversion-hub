@@ -120,22 +120,34 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--muted);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary);
+  background: linear-gradient(180deg, var(--primary), var(--accent));
   border-radius: 9999px;
+  border: 2px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: linear-gradient(180deg, var(--accent), var(--primary));
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Glassmorphism utilities */

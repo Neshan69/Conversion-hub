@@ -58,10 +58,10 @@ export default function NotFound() {
             <p className="text-sm text-muted-foreground mb-4">Try these popular converters:</p>
             <div className="flex flex-wrap justify-center gap-2">
               {[
-                { label: "kg to lbs", href: "/convert/weight?from=kilogram&to=pound" },
-                { label: "km to miles", href: "/convert/length?from=kilometer&to=mile" },
-                { label: "°C to °F", href: "/convert/temperature?from=celsius&to=fahrenheit" },
-                { label: "USD to EUR", href: "/currency/usd/eur" },
+                { label: "kg to lbs", href: "/unit/kg-to-lbs" },
+                { label: "km to miles", href: "/unit/length?from=kilometer&to=mile" },
+                { label: "°C to °F", href: "/unit/temperature?from=celsius&to=fahrenheit" },
+                { label: "USD to EUR", href: "/currency/usd-to-eur" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="px-4 py-2 rounded-full bg-muted hover:bg-accent/20 text-sm font-medium transition-colors">
                   {link.label}

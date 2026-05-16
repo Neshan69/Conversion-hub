@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { UnitConverterPage } from "@/components/converter/UnitConverterPage";
-import { getCategoryById, conversionCategories } from "@/data/conversions";
+import { getCategoryById, conversionCategories, parseUnitPairSlug } from "@/data/conversions";
 
 interface PageProps {
   params: {
@@ -15,16 +15,19 @@ interface PageProps {
 
 // Generate static paths for all categories
 export async function generateStaticParams() {
-  return conversionCategories.map((category) => ({
-    category: category.id,
-  }));
+  return [
+    ...conversionCategories.map((category) => ({ category: category.id })),
+    { category: "kg-to-lbs" },
+    { category: "cm-to-feet" },
+  ];
 }
 
 // Generate dynamic metadata for each category
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category: categoryId } = params;
 
-  const category = getCategoryById(categoryId);
+  const unitPair = parseUnitPairSlug(categoryId);
+  const category = unitPair?.category || getCategoryById(categoryId);
   if (!category) {
     return {
       title: "Converter Not Found",
@@ -32,8 +35,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = `${category.name} Converter – Free Online ${category.name} Conversion Tool | Conversion Hub`;
-  const description = `Free online ${category.name.toLowerCase()} converter. Convert between ${Object.keys(category.units).join(", ")} instantly with high precision. ${category.description}`;
+  const title = unitPair
+    ? `${category.units[unitPair.fromUnit].name} to ${category.units[unitPair.toUnit].name} Converter | Conversion Hub`
+    : `${category.name} Converter - Free Online ${category.name} Conversion Tool | Conversion Hub`;
+  const description = unitPair
+    ? `Convert ${category.units[unitPair.fromUnit].name} to ${category.units[unitPair.toUnit].name} instantly with a fast online unit converter.`
+    : `Free online ${category.name.toLowerCase()} converter. Convert between ${Object.keys(category.units).join(", ")} instantly with high precision. ${category.description}`;
 
   return {
     title,
@@ -74,7 +81,8 @@ export default function CategoryPage({ params, searchParams }: PageProps) {
   const { category: categoryId } = params;
   const { from, to } = searchParams;
 
-  const category = getCategoryById(categoryId);
+  const unitPair = parseUnitPairSlug(categoryId);
+  const category = unitPair?.category || getCategoryById(categoryId);
   if (!category) {
     notFound();
   }
@@ -82,9 +90,9 @@ export default function CategoryPage({ params, searchParams }: PageProps) {
   return (
     <UnitConverterPage
       category={category}
-      categoryId={categoryId}
-      initialFromUnit={from}
-      initialToUnit={to}
+      categoryId={category.id}
+      initialFromUnit={unitPair?.fromUnit || from}
+      initialToUnit={unitPair?.toUnit || to}
     />
   );
 }

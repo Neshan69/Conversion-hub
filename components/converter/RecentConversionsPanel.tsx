@@ -65,7 +65,7 @@ export function RecentConversionsPanel({ limit = 5 }: RecentConversionsProps) {
                 transition={{ duration: 0.2 }}
               >
                 <Link
-                  href={`/convert/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
+                  href={`/unit/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
                   className="flex items-center justify-between p-2.5 rounded-xl hover:bg-accent/10 transition-colors group"
                   prefetch={true}
                 >

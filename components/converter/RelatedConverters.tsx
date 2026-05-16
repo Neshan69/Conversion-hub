@@ -54,7 +54,7 @@ export const RelatedConverters = function RelatedConverters({ currentCategoryId 
             transition={{ duration: 0.3 }}
           >
             <Link
-              href={`/convert/${category.id}`}
+              href={`/unit/${category.id}`}
               className="group flex flex-col h-full p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-200 hover:shadow-lg"
               prefetch={true}
             >
@@ -109,7 +109,7 @@ export const RelatedConverters = function RelatedConverters({ currentCategoryId 
                     {Object.entries(category.units).map(([key, unit]) => (
                       <Link
                         key={key}
-                        href={`/convert/${category.id}?from=${key}`}
+                        href={`/unit/${category.id}?from=${key}`}
                         className="p-2 rounded-lg bg-muted/50 hover:bg-primary/10 text-sm text-muted-foreground hover:text-primary transition-colors text-center"
                       >
                         {unit.symbol} - {unit.name}
@@ -128,10 +128,10 @@ export const RelatedConverters = function RelatedConverters({ currentCategoryId 
         <nav className="mt-12 flex items-center justify-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary transition-colors">Home</Link>
           <ChevronDown className="w-3 h-3" />
-          <Link href="/convert" className="hover:text-primary transition-colors">Converters</Link>
+          <Link href="/unit" className="hover:text-primary transition-colors">Converters</Link>
           <ChevronDown className="w-3 h-3" />
           <Link
-            href={`/convert/${currentCategory.id}`}
+            href={`/unit/${currentCategory.id}`}
             className="hover:text-primary transition-colors font-medium"
           >
             {currentCategory.name}

@@ -74,7 +74,7 @@ export function PopularConversions() {
             return (
               <motion.div key={index} variants={itemVariants}>
                 <Link
-                  href={`/convert/${conv.categoryId}?from=${conv.fromUnit}&to=${conv.toUnit}`}
+                  href={`/unit/${conv.categoryId}?from=${conv.fromUnit}&to=${conv.toUnit}`}
                   className="group flex flex-col h-full p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5"
                   prefetch={true}
                 >

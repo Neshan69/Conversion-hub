@@ -6,5 +6,4 @@ export const navigationItems = [
   { label: "Home", href: "/" },
   { label: "Unit", href: "/unit" },
   { label: "Currency", href: "/currency" },
-  { label: "Search", href: "/search" },
 ] as const;

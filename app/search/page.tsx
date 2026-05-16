@@ -83,7 +83,7 @@ export default function SearchPage() {
       if (result.type === "currency") {
         window.location.href = `/currency/${result.unitKey.toLowerCase()}`;
       } else {
-        window.location.href = `/convert/${result.categoryId}?from=${result.unitKey}`;
+        window.location.href = `/unit/${result.categoryId}?from=${result.unitKey}`;
       }
     } else if (e.key === "Escape") {
       setIsOpen(false);
@@ -148,7 +148,7 @@ export default function SearchPage() {
                 <h3 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2">Popular Categories</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {conversionCategories.slice(0, 6).map((category) => (
-                    <Link key={category.id} href={`/convert/${category.id}`} onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-accent/5 transition-all">
+                    <Link key={category.id} href={`/unit/${category.id}`} onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-accent/5 transition-all">
                       <span className="text-xl">{category.icon}</span>
                       <div>
                         <p className="font-medium text-sm text-foreground">{category.name}</p>
@@ -182,7 +182,7 @@ export default function SearchPage() {
                     {filteredResults.map((result, index) => (
                       <motion.div key={`${result.categoryId}-${result.unitKey}`} initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.02 }}>
                         <Link
-                          href={result.type === "currency" ? `/currency/${result.unitKey.toLowerCase()}` : `/convert/${result.categoryId}`}
+                          href={result.type === "currency" ? `/currency/${result.unitKey.toLowerCase()}` : `/unit/${result.categoryId}`}
                           onClick={() => setIsOpen(false)}
                           className={cn(
                             "flex items-center gap-3 p-3 rounded-xl border transition-all",
@@ -222,15 +222,15 @@ export default function SearchPage() {
             <h3 className="text-lg font-semibold mb-5">Quick Access</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {[
-                { label: "kg → lbs", href: "/convert/weight?from=kilogram&to=pound" },
-                { label: "°C → °F", href: "/convert/temperature?from=celsius&to=fahrenheit" },
-                { label: "km → mi", href: "/convert/length?from=kilometer&to=mile" },
-                { label: "L → gal", href: "/convert/volume?from=liter&to=gallonUS" },
-                { label: "m → ft", href: "/convert/length?from=meter&to=foot" },
-                { label: "GB → MB", href: "/convert/storage?from=gigabyte&to=megabyte" },
-                { label: "USD → EUR", href: "/currency/usd/eur" },
-                { label: "USD → INR", href: "/currency/usd/inr" },
-                { label: "EUR → GBP", href: "/currency/eur/gbp" },
+                { label: "kg → lbs", href: "/unit/kg-to-lbs" },
+                { label: "°C → °F", href: "/unit/temperature?from=celsius&to=fahrenheit" },
+                { label: "km → mi", href: "/unit/length?from=kilometer&to=mile" },
+                { label: "L → gal", href: "/unit/volume?from=liter&to=gallonUS" },
+                { label: "m → ft", href: "/unit/length?from=meter&to=foot" },
+                { label: "GB → MB", href: "/unit/storage?from=gigabyte&to=megabyte" },
+                { label: "USD → EUR", href: "/currency/usd-to-eur" },
+                { label: "USD → INR", href: "/currency/usd-to-inr" },
+                { label: "EUR → GBP", href: "/currency/eur-to-gbp" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="p-3.5 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-accent/5 transition-all text-sm font-medium text-foreground flex items-center gap-2">
                   {link.label}

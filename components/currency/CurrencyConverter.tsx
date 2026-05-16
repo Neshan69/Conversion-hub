@@ -39,6 +39,7 @@ export function CurrencyConverter({
   compact?: boolean;
 }) {
   const [amount, setAmount] = useState(initialAmount);
+  const [debouncedAmount, setDebouncedAmount] = useState(initialAmount);
   const [fromCurrency, setFromCurrency] = useState(() => initialFrom || detectLocalCurrency());
   const [toCurrency, setToCurrency] = useState(() => initialTo || "USD");
 
@@ -65,8 +66,13 @@ export function CurrencyConverter({
   }, []);
 
   const numericAmount = useMemo(() => {
-    const parsed = parseFloat(amount);
+    const parsed = parseFloat(debouncedAmount);
     return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
+  }, [debouncedAmount]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedAmount(amount), 120);
+    return () => window.clearTimeout(timeout);
   }, [amount]);
 
   const convertedAmount = useMemo(() => {
@@ -89,7 +95,7 @@ export function CurrencyConverter({
     }
   }, [rates, fromCurrency, toCurrency]);
 
-  const { data: historicalData, loading: historicalLoading } = useHistoricalRates(fromCurrency, toCurrency, 30);
+  const { data: historicalData, loading: historicalLoading } = useHistoricalRates(fromCurrency, toCurrency, showHistorical ? 30 : 7);
 
   const convertedFormatted = useMemo(() => {
     if (convertedAmount === null) return "-";
@@ -97,9 +103,9 @@ export function CurrencyConverter({
   }, [convertedAmount, toCurrency]);
 
   const amountFormatted = useMemo(() => {
-    if (!amount || isNaN(parseFloat(amount))) return "-";
+    if (!debouncedAmount || isNaN(parseFloat(debouncedAmount))) return "-";
     return formatCurrency(numericAmount, fromCurrency);
-  }, [amount, numericAmount, fromCurrency]);
+  }, [debouncedAmount, numericAmount, fromCurrency]);
 
   const rateFormatted = useMemo(() => {
     if (!rate) return "-";
@@ -149,7 +155,7 @@ export function CurrencyConverter({
 
   const handleShare = useCallback(async () => {
     if (convertedAmount === null) return;
-    const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}/${toCurrency.toLowerCase()}?amount=${amount}`;
+    const url = `${window.location.origin}/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}?amount=${amount}`;
     const shareData = { title: `Convert ${fromCurrency} to ${toCurrency}`, text: `${amount} ${fromCurrency} = ${convertedFormatted}`, url };
     if (navigator.canShare?.(shareData)) {
       await navigator.share(shareData);
@@ -198,7 +204,7 @@ export function CurrencyConverter({
 
   return (
     <div className={`currency-converter ${compact ? "compact" : ""}`}>
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-8 shadow-lg">
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-card/70 backdrop-blur-xl border border-border/70 rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xl shadow-primary/5">
         <div className="mb-5">
           <label className="block text-sm font-medium text-muted-foreground mb-2" htmlFor="amount-input">Amount</label>
           <input id="amount-input" type="text" inputMode="decimal" value={amount} onChange={handleAmountInput} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl bg-background border-2 border-border text-2xl font-semibold focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} />
@@ -256,7 +262,7 @@ export function CurrencyConverter({
 
               {lastUpdated && (
                 <div className="mt-3 text-[11px] text-muted-foreground flex items-center justify-center gap-1">
-                  <Clock className="w-3 h-3" /> Last updated: {lastUpdatedFormatted}
+                  <Clock className="w-3 h-3" /> {rates?.source || "live"} • Last updated: {lastUpdatedFormatted}
                   {isStale && <span className="ml-2 text-amber-600">⚠ May be outdated</span>}
                 </div>
               )}
@@ -268,7 +274,7 @@ export function CurrencyConverter({
           <button onClick={handleCopy} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Copy className="w-4 h-4 group-hover:scale-110 transition-transform" /> Copy</button>
           <button onClick={handleShare} disabled={convertedAmount === null} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><Share2 className="w-4 h-4 group-hover:scale-110 transition-transform" /> Share</button>
           <button onClick={() => refresh()} disabled={loading} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 font-medium transition-colors disabled:opacity-50 group"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : "group-hover:rotate-180"} transition-transform`} /> Refresh</button>
-          <Link href={`/currency/${fromCurrency.toLowerCase()}/${toCurrency.toLowerCase()}`} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium transition-all hover:shadow-lg group" prefetch={true}><BarChart3 className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Details</Link>
+          <Link href={`/currency/${fromCurrency.toLowerCase()}-to-${toCurrency.toLowerCase()}`} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-medium transition-all hover:shadow-lg group" prefetch={true}><BarChart3 className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /> Details</Link>
         </div>
 
         {isStale && !loading && <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 text-sm flex items-center gap-2"><Clock className="w-4 h-4 flex-shrink-0" />Rates may be outdated. Click Refresh for latest.</div>}

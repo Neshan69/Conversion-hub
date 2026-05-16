@@ -171,7 +171,7 @@ export function UserDashboard() {
                         className="flex items-center justify-between p-3 hover:bg-accent/5 transition-colors group"
                       >
                         <Link
-                          href={`/convert/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
+                          href={`/unit/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
                           className="flex items-center gap-3 flex-1 min-w-0"
                           prefetch={true}
                         >
@@ -420,7 +420,7 @@ export function UserDashboardInline() {
                           return (
                             <Link
                               key={conv.id}
-                              href={`/convert/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
+                              href={`/unit/${conv.category}?from=${conv.fromUnit}&to=${conv.toUnit}`}
                               className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/5 transition-colors"
                               onClick={() => setOpen(false)}
                               prefetch={true}

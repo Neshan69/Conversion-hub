@@ -20,11 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://conversionhub.com"),
   title: {
-    default: "Conversion Hub - Free Currency Converter & Unit Tools",
+    default: "Conversion Hub - Currency Converter & Unit Converter",
     template: "%s | Conversion Hub",
   },
-  description: "Convert 180+ world currencies with live exchange rates. Also featuring length, weight, temperature, and other unit converters. Fast, accurate, and free.",
-  keywords: "currency converter, exchange rates, forex, live rates, unit converter, length converter, weight converter, temperature converter, free tools, AI insights",
+  description: "Live currency converter and online unit converter for exchange rates today, USD to NPR, USD to GBP, kg to lbs, cm to feet, and more.",
+  keywords: "currency converter, exchange rate today, unit converter, online conversion tool, USD to NPR, USD to GBP, kg to lbs, cm to feet",
   authors: [{ name: "Conversion Hub" }],
   creator: "Conversion Hub",
   publisher: "Conversion Hub",
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://conversionhub.com",
     siteName: "Conversion Hub",
-    title: "Conversion Hub - Currency Converter & Unit Tools",
-    description: "Convert currencies with live exchange rates and use our suite of unit converters. Trusted by millions for accurate, real-time conversions.",
+    title: "Conversion Hub - Currency Converter & Unit Converter",
+    description: "Live exchange rates and premium unit conversion tools for mobile and desktop.",
     images: [
       {
         url: "/api/og?title=Conversion+Hub&subtitle=Free+Online+Converters",
@@ -57,8 +57,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Conversion Hub - Currency Converter & Unit Tools",
-    description: "Live currency exchange rates and unit converters. Fast, accurate, and completely free.",
+    title: "Conversion Hub - Currency Converter & Unit Converter",
+    description: "Live currency exchange rates and online unit converters. Fast, accurate, and free.",
     images: ["/api/og?title=Conversion+Hub&subtitle=Live+Exchange+Rates"],
     creator: "@conversionhub",
   },
@@ -77,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
         {/* PWA Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -147,7 +147,7 @@ export function CurrencyPageClient() {
             {popularConversions.map((pair) => (
               <Link
                 key={`${pair.from}-${pair.to}`}
-                href={`/currency/${pair.from.toLowerCase()}/${pair.to.toLowerCase()}`}
+                href={`/currency/${pair.from.toLowerCase()}-to-${pair.to.toLowerCase()}`}
                 className="group flex items-center justify-between p-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-200"
                 prefetch={true}
               >
