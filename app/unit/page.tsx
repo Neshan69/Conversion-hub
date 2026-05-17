@@ -5,18 +5,18 @@ import { motion } from "framer-motion";
 import { ChevronRight, Search } from "lucide-react";
 import { conversionCategories } from "@/data/conversions";
 
-const quickLinks = [
-  { label: "km to mi", href: "/unit/length?from=kilometer&to=mile" },
-  { label: "kg to lbs", href: "/unit/weight?from=kilogram&to=pound" },
-  { label: "C to F", href: "/unit/temperature?from=celsius&to=fahrenheit" },
-  { label: "L to gal", href: "/unit/volume?from=liter&to=gallonUS" },
-  { label: "cm to feet", href: "/unit/cm-to-feet" },
-  { label: "GB to MB", href: "/unit/storage?from=gigabyte&to=megabyte" },
-  { label: "psi to kPa", href: "/unit/pressure?from=psi&to=kilopascal" },
-  { label: "kWh to J", href: "/unit/energy?from=kilowattHour&to=joule" },
-  { label: "km/h to mph", href: "/unit/speed?from=kilometerPerHour&to=milePerHour" },
-  { label: "hr to min", href: "/unit/time?from=hour&to=minute" },
-];
+  const quickLinks = [
+    { label: "km to mi", href: "/unit/kilometer-to-mile" },
+    { label: "kg to lbs", href: "/unit/kilogram-to-pound" },
+    { label: "C to F", href: "/unit/celsius-to-fahrenheit" },
+    { label: "L to gal", href: "/unit/liter-to-gallonUS" },
+    { label: "cm to feet", href: "/unit/cm-to-feet" },
+    { label: "GB to MB", href: "/unit/gigabyte-to-megabyte" },
+    { label: "psi to kPa", href: "/unit/psi-to-kilopascal" },
+    { label: "kWh to J", href: "/unit/kilowattHour-to-joule" },
+    { label: "km/h to mph", href: "/unit/kilometerPerHour-to-milePerHour" },
+    { label: "hr to min", href: "/unit/hour-to-minute" },
+  ];
 
 export default function UnitPage() {
   return (
@@ -79,25 +79,25 @@ export default function UnitPage() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.35, delay: index * 0.03 }}
               >
-                <Link
-                  href={`/unit/${category.id}`}
-                  className="group block h-full p-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-1 transition-all active:scale-[0.98]"
-                  prefetch={true}
-                >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-sm font-bold text-white mb-4 shadow-lg`}>
-                    {category.icon}
-                  </div>
-                  <h3 className="text-lg font-bold mb-1.5 group-hover:text-primary transition-colors">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">{category.description}</p>
-                  <div className="flex items-center justify-between pt-3 border-t border-border/30">
-                    <span className="text-[11px] text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-                      {Object.keys(category.units).length} units
-                    </span>
-                    <span className="text-[11px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                      Open <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </Link>
+                  <Link
+                    href={`/unit/category/${category.id}`}
+                    className="group block h-full p-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 hover:shadow-[0_0_20px_theme(colors.primary.500/0.3)] hover:-translate-y-2 transition-all duration-300 active:scale-[0.98]"
+                    prefetch={true}
+                  >
+                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-sm font-bold text-white mb-4 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
+                     {category.icon}
+                   </div>
+                   <h3 className="text-lg font-bold mb-1.5 group-hover:text-primary transition-colors">{category.name}</h3>
+                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">{category.description}</p>
+                   <div className="flex items-center justify-between pt-3 border-t border-border/30">
+                     <span className="text-[11px] text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                       {Object.keys(category.units).length} units
+                     </span>
+                     <span className="text-[11px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                       Open <ChevronRight className="w-3 h-3" />
+                     </span>
+                   </div>
+                 </Link>
               </motion.div>
             ))}
           </div>

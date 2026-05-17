@@ -19,8 +19,26 @@ export function CategoryCards() {
     prefetchRoutes();
   }, [router]);
 
-  // Reorder: Currency first (primary feature), then all unit converters
-  const allCategories = [currencyCategory, ...conversionCategories];
+  const extraCategories = [
+    {
+      id: "roman",
+      name: "Roman Numerals",
+      description: "Instant Roman numeral conversion, history, and premium clock previews.",
+      icon: "📜",
+      color: "from-amber-400 to-orange-500",
+      units: {},
+    },
+    {
+      id: "world-clock",
+      name: "World Clock",
+      description: "Live global clock dashboard, time zone comparison, and favorites.",
+      icon: "🕒",
+      color: "from-cyan-400 to-blue-500",
+      units: {},
+    },
+  ];
+
+  const allCategories = [currencyCategory, ...extraCategories, ...conversionCategories];
 
   return (
     <section className="py-20 md:py-32 bg-muted/30">
@@ -44,7 +62,14 @@ export function CategoryCards() {
 {/* Category grid */}
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
            {allCategories.map((category, index) => {
-             const href = category.id === "currency" ? "/currency" : `/unit/${category.id}`;
+             const href =
+               category.id === "currency"
+                 ? "/currency"
+                 : category.id === "roman"
+                 ? "/roman"
+                 : category.id === "world-clock"
+                 ? "/world-clock"
+                 : `/unit/${category.id}`;
              return (
                <motion.div
                  key={category.id}

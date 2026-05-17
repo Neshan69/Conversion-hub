@@ -11,6 +11,8 @@ import { UserDashboardInline } from "@/components/converter/UserDashboard";
 
 const navItems = [
   { label: "Home", href: "/" },
+  { label: "Roman", href: "/roman" },
+  { label: "World Clock", href: "/world-clock" },
   { label: "Unit", href: "/unit" },
   { label: "Currency", href: "/currency", highlight: true },
 ];
