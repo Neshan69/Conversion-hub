@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Sparkles } from "lucide-react";
+import { fetchRandomJoke, saveComment, getComments } from "@/lib/ai-jokes";
 
 interface Message {
   id: string;
@@ -25,6 +26,19 @@ export function ThunderBot() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdRef = useRef(0);
+  const usedJokeContents = useRef<Set<string>>(new Set());
+
+  // Seed used jokes from persisted comments so we avoid repeats across sessions
+  useEffect(() => {
+    try {
+      const persisted = getComments();
+      persisted.forEach((c) => {
+        if (c.type === "joke") usedJokeContents.current.add(c.content);
+      });
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,7 +68,63 @@ export function ThunderBot() {
     setInput("");
     setLoading(true);
 
-    // Simulate bot response (can be replaced with actual API call)
+    const input_lower = submittedInput.toLowerCase();
+    const isJokeRequest = /\bjoke\b|tell me a joke|make me laugh|funny|make me laugh please|got any jokes/i.test(input_lower);
+
+    if (isJokeRequest) {
+      try {
+        // Try multiple times to avoid repeating the same joke
+        let jokeComment = undefined as any;
+        const maxAttempts = 6;
+        for (let i = 0; i < maxAttempts; i++) {
+          // fetchRandomJoke provides an API fallback and local fallback
+          // it returns an object with `content` and `id` fields
+          // eslint-disable-next-line no-await-in-loop
+          const candidate = await fetchRandomJoke();
+          if (!usedJokeContents.current.has(candidate.content)) {
+            jokeComment = candidate;
+            break;
+          }
+        }
+
+        // If we still didn't find a new one, pick the last candidate or fallback message
+        if (!jokeComment) {
+          const fallback = await fetchRandomJoke();
+          jokeComment = fallback;
+        }
+
+        // Persist and mark as used
+        try {
+          saveComment(jokeComment);
+          usedJokeContents.current.add(jokeComment.content);
+        } catch {
+          /* ignore persistence failures */
+        }
+
+        const botMessage: Message = {
+          id: `bot-${messageId}`,
+          role: "bot",
+          content: jokeComment.content,
+          timestamp: messageId,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (err) {
+        const botMessage: Message = {
+          id: `bot-${messageId}`,
+          role: "bot",
+          content:
+            "Sorry, I couldn't fetch a fresh joke right now. Try again in a moment or ask for another one!",
+          timestamp: messageId,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } finally {
+        setLoading(false);
+      }
+
+      return;
+    }
+
+    // Non-joke fallback response (simulate async)
     setTimeout(() => {
       const botResponse = generateBotResponse(submittedInput);
       const botMessage: Message = {
