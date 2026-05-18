@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -46,13 +45,11 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity shrink-0 group">
-            <div className="relative w-8 h-8">
-              <Image src="/conversion-hub-logo.svg" alt="Conversion Hub logo" fill sizes="32px" className="object-contain" />
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity shrink-0 group">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all duration-200 group-hover:scale-105">
+              <span className="text-sm font-bold text-primary-foreground">C</span>
             </div>
-            <span className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:block">
-              Conversion Hub
-            </span>
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:block">Conversion Hub</span>
           </Link>
 
           {/* Desktop Navigation */}
