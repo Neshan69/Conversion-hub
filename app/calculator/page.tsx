@@ -34,6 +34,24 @@ export default function CalculatorIndex() {
             <p className="text-sm text-muted-foreground">Body mass index calculator.</p>
             <a href="/calculator/bmi" className="text-primary text-sm mt-2 inline-block">Open BMI</a>
           </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <h3 className="font-semibold">Age</h3>
+            <p className="text-sm text-muted-foreground">Calculate precise age from birthdate.</p>
+            <a href="/calculator/age" className="text-primary text-sm mt-2 inline-block">Open age calculator</a>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <h3 className="font-semibold">Love</h3>
+            <p className="text-sm text-muted-foreground">Playful compatibility score between two names.</p>
+            <a href="/calculator/love" className="text-primary text-sm mt-2 inline-block">Open love calculator</a>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <h3 className="font-semibold">Loan / EMI</h3>
+            <p className="text-sm text-muted-foreground">Calculate monthly payments and amortization.</p>
+            <a href="/calculator/loan" className="text-primary text-sm mt-2 inline-block">Open EMI calculator</a>
+          </div>
         </div>
 
         <div className="mt-6">
